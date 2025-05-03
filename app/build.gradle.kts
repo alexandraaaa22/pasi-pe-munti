@@ -53,6 +53,8 @@ dependencies {
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.ui.tooling.preview.android)
     implementation(libs.androidx.media3.common.ktx)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.firebase.firestore.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -81,6 +83,8 @@ dependencies {
 
     implementation("androidx.compose.material3:material3:$material3_version")
     implementation("androidx.activity:activity-compose:$activity_version")
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
 
     implementation("org.osmdroid:osmdroid-android:6.1.16")
     implementation("com.google.code.gson:gson:2.10.1")
