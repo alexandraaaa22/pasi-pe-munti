@@ -83,9 +83,3 @@ fun ProfileScreen() {
 //fun BottomMenuPreview() {
 //    BottomMenu()
 //}
-
-@Preview(showBackground = true)
-@Composable
-fun SearchScreenPreview() {
-    SearchHikeScreen()
-}
