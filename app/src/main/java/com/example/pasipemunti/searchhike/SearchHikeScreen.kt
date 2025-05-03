@@ -115,7 +115,6 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
             }
         }
     }
-
 }
 
 
