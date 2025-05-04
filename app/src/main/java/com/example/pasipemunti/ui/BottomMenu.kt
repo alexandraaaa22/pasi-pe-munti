@@ -7,6 +7,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
+import com.example.pasipemunti.home.BarChartScreen
+import com.example.pasipemunti.home.LineChartScreen
 import com.example.pasipemunti.searchhike.SearchHikeScreen
 import com.example.pasipemunti.ui.BottomMenuItem
 
@@ -84,7 +86,7 @@ fun TrailListScreen() {
 
 @Composable
 fun HomeScreen() {
-    Text("Home screen", Modifier.padding(16.dp))
+   BarChartScreen()
 }
 
 @Composable
