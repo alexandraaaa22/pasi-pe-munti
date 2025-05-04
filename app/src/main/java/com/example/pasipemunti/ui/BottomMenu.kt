@@ -3,6 +3,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.*
@@ -13,24 +14,38 @@ import com.example.pasipemunti.ui.BottomMenuItem
 @Composable
 fun BottomMenu() {
     val navController = rememberNavController()
+    var selectedItem by remember { mutableStateOf<BottomMenuItem>(BottomMenuItem.Home) }
+
+    val items = listOf(
+        BottomMenuItem.TrailList,
+        BottomMenuItem.Search,
+        BottomMenuItem.Home,
+        BottomMenuItem.Map,
+        BottomMenuItem.Profile
+    )
 
     Scaffold(
         bottomBar = {
             NavigationBar {
-                val items = listOf(
-                    BottomMenuItem.TrailList,
-                    BottomMenuItem.Search,
-                    BottomMenuItem.Home,
-                    BottomMenuItem.Map,
-                    BottomMenuItem.Profile
-                )
                 items.forEach { item ->
+                    val isSelected = item == selectedItem
                     NavigationBarItem(
-                        icon = { Icon(item.icon, contentDescription = item.label) },
-                        label = { Text(item.label) },
-                        selected = false,
+                        icon = {
+                            Icon(
+                                imageVector = item.icon,
+                                contentDescription = item.label,
+                                tint = if (isSelected) Color(0xff1a570a) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        },
+                        label = {
+                            Text(
+                                text = item.label,
+                                color = if (isSelected) Color(0xff1a570a) else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        },
+                        selected = isSelected,
                         onClick = {
-                            Log.d("Navigation", "Navigating to ${item.label}") // Log de debugging
+                            selectedItem = item
                             when (item) {
                                 is BottomMenuItem.Search -> navController.navigate("searchHike")
                                 is BottomMenuItem.TrailList -> navController.navigate("trailList")
@@ -38,7 +53,10 @@ fun BottomMenu() {
                                 is BottomMenuItem.Map -> navController.navigate("map")
                                 is BottomMenuItem.Profile -> navController.navigate("profile")
                             }
-                        }
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            indicatorColor = Color(0x1A47B36D)
+                        )
                     )
                 }
             }
@@ -46,7 +64,7 @@ fun BottomMenu() {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = "home", // Punctul de start
+            startDestination = "home",
             modifier = Modifier.padding(paddingValues)
         ) {
             composable("home") { HomeScreen() }
@@ -57,6 +75,7 @@ fun BottomMenu() {
         }
     }
 }
+
 
 @Composable
 fun TrailListScreen() {
