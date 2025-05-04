@@ -1,6 +1,8 @@
 package com.example.pasipemunti.searchhike
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,12 +14,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Polyline
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.pasipemunti.R
+import org.osmdroid.views.overlay.Marker
 
 @Composable
 fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
@@ -48,8 +53,32 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
                 if (routePoints.isNotEmpty()) {
                     val polyline = Polyline().apply {
                         setPoints(routePoints)
+                        color = 0xFF29780C.toInt()
                     }
+
                     map.overlays.add(polyline)
+
+                    val context = map.context
+                    val drawable = ContextCompat.getDrawable(context, R.drawable.top)
+                    val bitmap = (drawable as BitmapDrawable).bitmap
+                    val resizedBitmap = Bitmap.createScaledBitmap(bitmap, 30, 30, true)
+
+                    val startMarker = Marker(map).apply {
+                        position = routePoints.first()
+                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                        icon = BitmapDrawable(context.resources, resizedBitmap)
+                        title = "Start"
+                    }
+                    val endMarker = Marker(map).apply {
+                        position = routePoints.last()
+                        setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                        icon = BitmapDrawable(context.resources, resizedBitmap)
+                        title = "Finish"
+                    }
+
+                    map.overlays.add(startMarker)
+                    map.overlays.add(endMarker)
+
                     map.controller.setCenter(routePoints.first())
                     map.invalidate()
                 }
@@ -116,6 +145,5 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
         }
     }
 }
-
 
 
