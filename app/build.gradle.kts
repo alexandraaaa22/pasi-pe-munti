@@ -93,4 +93,11 @@ dependencies {
 
     //for graphs
     implementation("co.yml:ycharts:2.1.0")
+
+    //maybe better graphs
+    //implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
+
+//    implementation("io.data2viz.charts:core:1.1.0-eap1")
+//    implementation("io.data2viz.d2v:viz:0.8.12")
+//    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.5")
 }
