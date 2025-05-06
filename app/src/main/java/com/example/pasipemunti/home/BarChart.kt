@@ -1,23 +1,48 @@
 package com.example.pasipemunti.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.Grain
+import androidx.compose.material.icons.filled.Hiking
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Terrain
+import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import co.yml.charts.axis.AxisData
@@ -28,6 +53,17 @@ import co.yml.charts.ui.linechart.LineChart
 import co.yml.charts.ui.linechart.model.*
 import com.example.pasipemunti.R
 import kotlin.random.Random
+
+object HikingAppTheme {
+    val primaryGreen = Color(0xFF2E7D32)
+    val lightGreen = Color(0xFF66BB6A)
+    val backgroundGreen = Color(0xFFF5F9F5)
+    val accentOrange = Color(0xFFFF8F00)
+    val skyBlue = Color(0xFF90CAF9)
+    val mountainBrown = Color(0xFF8D6E63)
+    val textDark = Color(0xFF424242)
+    val textLight = Color(0xFF757575)
+}
 
 enum class TimeRange(val months: Int, val label: String) {
     SIX_MONTHS(6, "6 Months"),
@@ -67,7 +103,6 @@ fun HikingStatsScreen() {
                 .background(Color(0x99FFFFFF))
         )
 
-        // Main content - use ScrollableColumn to ensure visibility of all content
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -153,10 +188,17 @@ fun HikingStatsScreen() {
                     defaultElevation = 2.dp
                 )
             ) {
-                HikingStatsTable(
+                EnhancedHikingStatsTable(
                     kmPerMonth = displayedData,
                     months = displayedMonths
                 )
+                Spacer(modifier = Modifier.height(16.dp))
+
+                AchievementsSection()
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                WeatherSection()
             }
         }
     }
@@ -178,7 +220,7 @@ fun TimeRangeSelector(
                 onClick = { onTimeRangeSelected(timeRange) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (timeRange == selectedTimeRange)
-                        Color(0xFF2E7D32) else Color(0xFFE0E0E0)
+                        HikingAppTheme.primaryGreen else Color(0xFFE0E0E0)
                 ),
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
@@ -206,8 +248,8 @@ fun ChartTypeSelector(
         verticalAlignment = Alignment.CenterVertically
     ) {
         val types = listOf(
-            ChartType.BAR to "Bar Chart",
-            ChartType.LINE to "Line Chart"
+            ChartType.LINE to "Line Chart",
+            ChartType.BAR to "Bar Chart"
         )
 
         types.forEach { (type, label) ->
@@ -385,17 +427,11 @@ fun createBarChartData(hikingData: List<Float>): List<BarData> {
 }
 
 @Composable
-fun HikingStatsTable(kmPerMonth: List<Float>, months: List<String>) {
-    // Make sure we have data to display
-    if (kmPerMonth.isEmpty() || months.isEmpty()) {
-        Text(
-            text = "No hiking data available",
-            modifier = Modifier.padding(16.dp),
-            color = Color.Gray
-        )
-        return
-    }
-
+fun EnhancedHikingStatsTable(
+    kmPerMonth: List<Float>,
+    months: List<String>
+) {
+    // Calculate stats
     val totalKm = kmPerMonth.sum()
     val averageKm = kmPerMonth.average()
     val maxKm = kmPerMonth.maxOrNull() ?: 0f
@@ -406,38 +442,84 @@ fun HikingStatsTable(kmPerMonth: List<Float>, months: List<String>) {
         "N/A"
     }
 
-    Column(
+    // Animation for the card
+    val cardElevation by animateDpAsState(
+        targetValue = 4.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "cardElevation"
+    )
+
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(horizontal = 8.dp, vertical = 8.dp)
+            .shadow(
+                elevation = cardElevation,
+                shape = RoundedCornerShape(16.dp)
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        shape = RoundedCornerShape(16.dp)
     ) {
-        Text(
-            text = "Your Hiking Summary",
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp,
-            color = Color(0xFF2E7D32),
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-
-        Row(modifier = Modifier.fillMaxWidth()) {
-            StatItem(
-                value = "${"%.1f".format(averageKm)} km",
-                label = "Monthly Average",
-                modifier = Modifier.weight(1f)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Your Hiking Summary",
+                fontWeight = FontWeight.Bold,
+                fontSize = 18.sp,
+                color = HikingAppTheme.primaryGreen,
+                modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            StatItem(
-                value = "${"%.0f".format(totalKm)} km",
-                label = "Total Distance",
-                modifier = Modifier.weight(1f)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                EnhancedStatItem(
+                    value = "${"%.1f".format(averageKm)}",
+                    unit = "km",
+                    label = "Monthly Average",
+                    icon = Icons.Default.CalendarMonth,
+                    iconTint = HikingAppTheme.primaryGreen
+                )
 
-            StatItem(
-                value = mostActiveMonth,
-                label = "Most Active Month",
-                subtitle = "${"%.0f".format(maxKm)} km",
-                modifier = Modifier.weight(1f)
-            )
+                Divider(
+                    modifier = Modifier
+                        .height(50.dp)
+                        .width(1.dp),
+                    color = Color(0xFFE0E0E0)
+                )
+
+                EnhancedStatItem(
+                    value = "${"%.0f".format(totalKm)}",
+                    unit = "km",
+                    label = "Total Distance",
+                    icon = Icons.Default.Hiking,
+                    iconTint = HikingAppTheme.primaryGreen
+                )
+
+                Divider(
+                    modifier = Modifier
+                        .height(50.dp)
+                        .width(1.dp),
+                    color = Color(0xFFE0E0E0)
+                )
+
+                EnhancedStatItem(
+                    value = mostActiveMonth,
+                    subtitle = "${"%.0f".format(maxKm)} km",
+                    label = "Most Active",
+                    icon = Icons.Default.EmojiEvents,
+                    iconTint = HikingAppTheme.accentOrange
+                )
+            }
         }
     }
 }
@@ -474,6 +556,444 @@ fun StatItem(
                 modifier = Modifier.padding(top = 2.dp)
             )
         }
+    }
+}
+
+@Composable
+fun EnhancedStatItem(
+    value: String,
+    label: String,
+    icon: ImageVector,
+    iconTint: Color,
+    modifier: Modifier = Modifier,
+    unit: String? = null,
+    subtitle: String? = null
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.padding(horizontal = 4.dp)
+    ) {
+        // Icon with background
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            iconTint.copy(alpha = 0.2f),
+                            iconTint.copy(alpha = 0.05f)
+                        )
+                    )
+                )
+                .padding(4.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                tint = iconTint,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Value with unit
+        Row(
+            verticalAlignment = Alignment.Bottom,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = value,
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = HikingAppTheme.textDark
+            )
+
+            if (unit != null) {
+                Text(
+                    text = unit,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = HikingAppTheme.textLight,
+                    modifier = Modifier.padding(start = 2.dp, bottom = 2.dp)
+                )
+            }
+        }
+
+        // Label
+        Text(
+            text = label,
+            fontSize = 12.sp,
+            color = HikingAppTheme.textLight
+        )
+
+        // Optional subtitle
+        if (subtitle != null) {
+            Text(
+                text = subtitle,
+                fontSize = 12.sp,
+                color = HikingAppTheme.accentOrange,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.padding(top = 2.dp)
+            )
+        }
+    }
+}
+
+// New Achievement Section
+@Composable
+fun AchievementsSection() {
+    var expanded by remember { mutableStateOf(false) }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 8.dp)
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(16.dp)
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            // Header with expand/collapse button
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.EmojiEvents,
+                        contentDescription = "Achievements",
+                        tint = HikingAppTheme.accentOrange,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Recent Achievements",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp,
+                        color = HikingAppTheme.textDark
+                    )
+                }
+
+                IconButton(onClick = { expanded = !expanded }) {
+                    Icon(
+                        imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = if (expanded) "Collapse" else "Expand",
+                        tint = HikingAppTheme.textLight
+                    )
+                }
+            }
+
+            AnimatedVisibility(
+                visible = expanded,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Column(modifier = Modifier.padding(top = 8.dp)) {
+                    AchievementItem(
+                        title = "Trail Blazer",
+                        description = "Hiked 5 days in a row",
+                        progress = 1.0f,
+                        color = HikingAppTheme.accentOrange
+                    )
+
+                    AchievementItem(
+                        title = "Mountain Goat",
+                        description = "Reached 1000m elevation",
+                        progress = 0.8f,
+                        color = HikingAppTheme.primaryGreen
+                    )
+
+                    AchievementItem(
+                        title = "Explorer",
+                        description = "Hiked 10 different trails",
+                        progress = 0.6f,
+                        color = HikingAppTheme.skyBlue
+                    )
+                }
+            }
+
+            if (!expanded) {
+                // Preview of achievements when collapsed
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    AchievementBadge(
+                        progress = 1.0f,
+                        color = HikingAppTheme.accentOrange,
+                        icon = Icons.Default.LocalFireDepartment
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    AchievementBadge(
+                        progress = 0.8f,
+                        color = HikingAppTheme.primaryGreen,
+                        icon = Icons.Default.Terrain
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    AchievementBadge(
+                        progress = 0.6f,
+                        color = HikingAppTheme.skyBlue,
+                        icon = Icons.Default.Explore
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AchievementItem(
+    title: String,
+    description: String,
+    progress: Float,
+    color: Color
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AchievementBadge(
+            progress = progress,
+            color = color,
+            size = 40.dp
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontWeight = FontWeight.Medium,
+                fontSize = 16.sp,
+                color = HikingAppTheme.textDark
+            )
+            Text(
+                text = description,
+                fontSize = 14.sp,
+                color = HikingAppTheme.textLight
+            )
+        }
+
+        Text(
+            text = "${(progress * 100).toInt()}%",
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp,
+            color = color
+        )
+    }
+}
+
+@Composable
+fun AchievementBadge(
+    progress: Float,
+    color: Color,
+    icon: ImageVector? = null,
+    size: Dp = 60.dp
+) {
+    Box(contentAlignment = Alignment.Center) {
+        // Progress indicator
+        CircularProgressIndicator(
+            progress = progress,
+            modifier = Modifier.size(size),
+            color = color,
+            trackColor = color.copy(alpha = 0.2f),
+            strokeWidth = 4.dp
+        )
+
+        // Center content
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(size - 12.dp)
+                .clip(CircleShape)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            color.copy(alpha = 0.2f),
+                            color.copy(alpha = 0.05f)
+                        )
+                    )
+                )
+        ) {
+            if (icon != null) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = color,
+                    modifier = Modifier.size(size / 2)
+                )
+            }
+        }
+    }
+}
+
+// Weather Information Section
+@Composable
+fun WeatherSection() {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 8.dp)
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(16.dp)
+            ),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.White
+        ),
+        shape = RoundedCornerShape(16.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Cloud,
+                    contentDescription = "Weather",
+                    tint = HikingAppTheme.skyBlue,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Weather Insights",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    color = HikingAppTheme.textDark
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                WeatherInsightItem(
+                    title = "Best Weather",
+                    value = "Clear",
+                    subtitle = "32.5 km avg",
+                    icon = Icons.Default.WbSunny,
+                    iconTint = HikingAppTheme.accentOrange
+                )
+
+                WeatherInsightItem(
+                    title = "Most Frequent",
+                    value = "Cloudy",
+                    subtitle = "21.3 km avg",
+                    icon = Icons.Default.Cloud,
+                    iconTint = HikingAppTheme.skyBlue
+                )
+
+                WeatherInsightItem(
+                    title = "Challenging",
+                    value = "Rain",
+                    subtitle = "18.9 km avg",
+                    icon = Icons.Default.Grain,
+                    iconTint = HikingAppTheme.textLight
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun WeatherInsightItem(
+    title: String,
+    value: String,
+    subtitle: String,
+    icon: ImageVector,
+    iconTint: Color
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(horizontal = 4.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = title,
+            tint = iconTint,
+            modifier = Modifier.size(28.dp)
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = value,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = HikingAppTheme.textDark
+        )
+
+        Text(
+            text = title,
+            fontSize = 12.sp,
+            color = HikingAppTheme.textLight
+        )
+
+        Text(
+            text = subtitle,
+            fontSize = 12.sp,
+            color = iconTint,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+// Enhanced Hiking Chart with Animations
+@Composable
+fun EnhancedHikingLineChart(
+    hikingData: List<Float>,
+    months: List<String>,
+    // Add more parameters as needed
+) {
+    // Existing chart implementation with added animations
+    // This would replace your current HikingLineChart implementation
+
+    // Chart animation state
+    val animatedProgress = remember { Animatable(0f) }
+
+    LaunchedEffect(hikingData) {
+        animatedProgress.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(1000, easing = FastOutSlowInEasing)
+        )
+    }
+
+    // Your existing chart implementation would go here
+    // And would use animatedProgress.value to animate the chart elements
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(280.dp)
+            .padding(16.dp)
+    ) {
+        // Placeholder for chart implementation
+        Text(
+            text = "Enhanced animated chart would go here",
+            modifier = Modifier.align(Alignment.Center),
+            color = HikingAppTheme.textLight
+        )
     }
 }
 
