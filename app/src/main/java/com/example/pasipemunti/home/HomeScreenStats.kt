@@ -32,7 +32,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
@@ -52,7 +51,6 @@ import co.yml.charts.ui.barchart.models.*
 import co.yml.charts.ui.linechart.LineChart
 import co.yml.charts.ui.linechart.model.*
 import com.example.pasipemunti.R
-import kotlin.random.Random
 
 object HikingAppTheme {
     val primaryGreen = Color(0xFF2E7D32)

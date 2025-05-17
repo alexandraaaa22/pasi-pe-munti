@@ -80,7 +80,7 @@ fun BottomMenu() {
 
 @Composable
 fun TrailListScreen() {
-    Text("A list of available trails", Modifier.padding(16.dp))
+    com.example.pasipemunti.traillist.TrailListScreen(rememberNavController())
 }
 
 @Composable
