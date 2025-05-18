@@ -22,8 +22,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.pasipemunti.home.HikingAppTheme
-import com.example.pasipemunti.traillist.TrailListViewModel
-import com.example.pasipemunti.traillist.formatDuration
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.BoundingBox
@@ -31,13 +29,7 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.Polyline
-import org.osmdroid.views.overlay.infowindow.InfoWindow
-import org.osmdroid.views.overlay.infowindow.MarkerInfoWindow
-import org.osmdroid.views.overlay.milestones.MilestoneBitmapDisplayer
-import org.osmdroid.views.overlay.milestones.MilestoneManager
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 
 @Composable
 fun TrailMapScreen(
@@ -48,6 +40,11 @@ fun TrailMapScreen(
     val selectedTrail = viewModel.selectedTrail
     var mapInitialized by remember { mutableStateOf(false) }
     var showElevationProfile by remember { mutableStateOf(false) }
+
+    // Debug log to check if trail is selected
+    LaunchedEffect(selectedTrail) {
+        android.util.Log.d("TrailMapScreen", "Selected Trail: ${selectedTrail?.name ?: "null"}")
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (selectedTrail == null) {

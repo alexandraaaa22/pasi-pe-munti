@@ -6,9 +6,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
 import androidx.navigation.compose.*
 import com.example.pasipemunti.home.HikingStatsScreen
 import com.example.pasipemunti.searchhike.SearchHikeScreen
+import com.example.pasipemunti.traillist.TrailListViewModel
+import com.example.pasipemunti.traillist.TrailMapScreen
 import com.example.pasipemunti.ui.BottomMenuItem
 
 
@@ -16,6 +20,8 @@ import com.example.pasipemunti.ui.BottomMenuItem
 fun BottomMenu() {
     val navController = rememberNavController()
     var selectedItem by remember { mutableStateOf<BottomMenuItem>(BottomMenuItem.Home) }
+    // shared viewModel for Trail screens
+    val trailListViewModel: TrailListViewModel = viewModel()
 
     val items = listOf(
         BottomMenuItem.TrailList,
@@ -70,22 +76,29 @@ fun BottomMenu() {
         ) {
             composable("home") { HomeScreen() }
             composable("searchHike") { SearchHikeScreen() }
-            composable("trailList") { TrailListScreen() }
+            composable("trailList") {
+                TrailListScreen(navController, trailListViewModel)
+            }
+            composable("trailMap") {
+                com.example.pasipemunti.traillist.TrailMapScreen(navController, trailListViewModel)
+            }
             composable("map") { MapScreen() }
             composable("profile") { ProfileScreen() }
         }
     }
 }
 
-
 @Composable
-fun TrailListScreen() {
-    com.example.pasipemunti.traillist.TrailListScreen(rememberNavController())
+fun TrailListScreen(
+    navController: androidx.navigation.NavController,
+    viewModel: TrailListViewModel = viewModel()
+) {
+    com.example.pasipemunti.traillist.TrailListScreen(navController, viewModel)
 }
 
 @Composable
 fun HomeScreen() {
-   HikingStatsScreen()
+    HikingStatsScreen()
 }
 
 @Composable

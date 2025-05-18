@@ -1,6 +1,5 @@
 package com.example.pasipemunti.traillist
 
-import android.content.res.Configuration
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
@@ -24,15 +23,31 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.pasipemunti.home.HikingAppTheme
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
+
+// Function to format duration in readable format
+fun formatDuration(durationMillis: Long): String {
+    val hours = TimeUnit.MILLISECONDS.toHours(durationMillis)
+    val minutes = TimeUnit.MILLISECONDS.toMinutes(durationMillis) % 60
+
+    return when {
+        hours > 0 -> String.format("%dh %02dm", hours, minutes)
+        else -> String.format("%dm", minutes)
+    }
+}
+
+// Function to format date
+fun formatDate(date: Date): String {
+    val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+    return dateFormat.format(date)
+}
 
 @Composable
 fun TrailListScreen(
@@ -91,11 +106,15 @@ fun TrailListScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     items(trails) { trail ->
+                        android.util.Log.d("TrailListScreen", "Trail: ${trail.name}")
                         TrailCard(
                             trail = trail,
                             onClick = {
                                 viewModel.selectTrail(trail)
+                                android.util.Log.d("TrailListScreen", "Selected Trail: ${trail.name}")
                                 navController.navigate("trailMap")
+                                // When navigating to the map, we're already passing the selected trail
+                                // through the ViewModel, which will handle the zooming
                             }
                         )
                     }
@@ -301,33 +320,4 @@ fun TrailStatItem(
             fontSize = 12.sp
         )
     }
-}
-
-// Helper function to format duration
-fun formatDuration(seconds: Long): String {
-    val hours = seconds / 3600
-    val minutes = (seconds % 3600) / 60
-
-    return if (hours > 0) {
-        "$hours h ${minutes} min"
-    } else {
-        "$minutes min"
-    }
-}
-
-// Helper function to format date
-fun formatDate(date: Date): String {
-    val format = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-    return format.format(date)
-}
-
-@Preview(name = "Light Mode")
-@Preview(
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-    showBackground = true,
-    name = "Dark Mode"
-)
-@Composable
-fun TrailListScreenPreview() {
-    TrailListScreen(navController = rememberNavController())
 }
