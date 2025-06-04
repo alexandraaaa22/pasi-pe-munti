@@ -995,8 +995,41 @@ fun EnhancedHikingLineChart(
     }
 }
 
+//@Preview(showBackground = true)
+//@Composable
+//fun HikingStatsScreenPreview() {
+//    HikingStatsScreen()
+//}
+
 @Preview(showBackground = true)
 @Composable
-fun HikingStatsScreenPreview() {
-    HikingStatsScreen()
+fun StatItemPreview() {
+    EnhancedStatItem(
+        value = "25",
+        unit = "km",
+        label = "Drumeția de astăzi",
+        icon = Icons.Default.WbSunny,
+        iconTint = HikingAppTheme.accentOrange
+    )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AchievementItemPreview() {
+    AchievementItem(
+        title = "Maestrul Potecilor",
+        description = "250 km parcurși – bocancii tăi merită o vacanță!",
+        progress = 1f,
+        color = HikingAppTheme.skyBlue,
+    )
+}
+
+@Preview(showBackground = true, widthDp = 100, heightDp = 100)
+@Composable
+fun AchievementBadgePreview() {
+    AchievementBadge(
+        progress = 0.75f,
+        color = HikingAppTheme.primaryGreen,
+        icon = Icons.Default.Hiking
+    )
 }

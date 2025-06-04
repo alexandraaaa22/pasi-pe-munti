@@ -15,3 +15,4 @@ data class NominatimResult(
     val lat: String,
     val lon: String
 )
+
