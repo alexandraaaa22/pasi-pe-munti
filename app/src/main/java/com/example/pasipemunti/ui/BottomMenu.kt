@@ -4,24 +4,32 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.*
+import com.example.pasipemunti.data.LocalDatabase
 import com.example.pasipemunti.home.HikingStatsScreen
 import com.example.pasipemunti.searchhike.SearchHikeScreen
-import com.example.pasipemunti.traillist.TrailListViewModel
 import com.example.pasipemunti.traillist.TrailMapScreen
 import com.example.pasipemunti.ui.BottomMenuItem
+import com.example.pasipemunti.ui.TrailListViewModel
+import com.example.pasipemunti.ui.TrailListViewModelFactory
 
 
 @Composable
 fun BottomMenu() {
     val navController = rememberNavController()
     var selectedItem by remember { mutableStateOf<BottomMenuItem>(BottomMenuItem.Home) }
-    // shared viewModel for Trail screens
-    val trailListViewModel: TrailListViewModel = viewModel()
+
+    // NOU: Obține contextul pentru a inițializa baza de date
+    val context = LocalContext.current
+    // NOU: Inițializează TrailListViewModel cu Factory-ul său
+    val trailListViewModel: TrailListViewModel = viewModel(
+        factory = TrailListViewModelFactory(LocalDatabase.getDatabase(context).gpxTrailDao())
+    )
 
     val items = listOf(
         BottomMenuItem.TrailList,
@@ -77,9 +85,12 @@ fun BottomMenu() {
             composable("home") { HomeScreen() }
             composable("searchHike") { SearchHikeScreen() }
             composable("trailList") {
-                TrailListScreen(navController, trailListViewModel)
+                // Pasăm ViewModel-ul deja instanțiat
+                com.example.pasipemunti.traillist.TrailListScreen(navController, trailListViewModel)
             }
             composable("trailMap") {
+                // Pasăm ViewModel-ul deja instanțiat pentru TrailMapScreen
+                // (Acesta va accesa selectedTrail din trailListViewModel)
                 com.example.pasipemunti.traillist.TrailMapScreen(navController, trailListViewModel)
             }
             composable("map") { MapScreen() }
@@ -88,13 +99,18 @@ fun BottomMenu() {
     }
 }
 
-@Composable
+// Această funcție TrailListScreen de aici nu mai este necesară,
+// deoarece o apelezi direct pe cea din pachetul `traillist`.
+// Poți să o ștergi.
+
+/* @Composable
 fun TrailListScreen(
     navController: androidx.navigation.NavController,
-    viewModel: TrailListViewModel = viewModel()
+    viewModel: TrailListViewModel = viewModel() // Aceasta va crea o nouă instanță dacă nu se specifică factory
 ) {
     com.example.pasipemunti.traillist.TrailListScreen(navController, viewModel)
-}
+} */
+
 
 @Composable
 fun HomeScreen() {
@@ -111,8 +127,8 @@ fun ProfileScreen() {
     Text("Profile screen", Modifier.padding(16.dp))
 }
 
-//@Preview
-//@Composable
-//fun BottomMenuPreview() {
-//    BottomMenu()
-//}
+// @Preview
+// @Composable
+// fun BottomMenuPreview() {
+//     BottomMenu()
+// }

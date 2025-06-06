@@ -9,9 +9,9 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class BottomMenuItem(val label: String, val icon: ImageVector) {
-    object TrailList : BottomMenuItem("Trails", Icons.AutoMirrored.Filled.List)
-    object Search : BottomMenuItem("Search", Icons.Default.Search)
-    object Home : BottomMenuItem("Home", Icons.Default.Home)
-    object Map : BottomMenuItem("Map", Icons.Default.Map)
-    object Profile : BottomMenuItem("Profile", Icons.Default.Person)
+    object TrailList : BottomMenuItem("Trasee", Icons.AutoMirrored.Filled.List)
+    object Search : BottomMenuItem("Caută", Icons.Default.Search)
+    object Home : BottomMenuItem("Acasă", Icons.Default.Home)
+    object Map : BottomMenuItem("Hartă", Icons.Default.Map)
+    object Profile : BottomMenuItem("Profil", Icons.Default.Person)
 }

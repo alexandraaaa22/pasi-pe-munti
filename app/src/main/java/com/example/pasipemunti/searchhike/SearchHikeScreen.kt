@@ -187,7 +187,7 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
                     OutlinedTextField(
                         value = viewModel.end,
                         onValueChange = { viewModel.end = it },
-                        label = { Text("End") },
+                        label = { Text("Stop") },
                         modifier = Modifier
                             .weight(1f)
                             .padding(start = 4.dp),
@@ -211,7 +211,7 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
                         containerColor = Color(0xB347B36D)
                     )
                 ) {
-                    Text("Find", color = Color.White)
+                    Text("Găsește traseu", color = Color.White)
                 }
             }
         }
@@ -326,7 +326,7 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
                     containerColor = Color(0xFF2E7D32) // A green color
                 )
             ) {
-                Text("Start Navigation", color = Color.White)
+                Text("Începe traseul", color = Color.White)
             }
         }
         // Removed the Stop Navigation button from the original spot, it's now inside the navigation card

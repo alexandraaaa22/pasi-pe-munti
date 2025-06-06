@@ -55,6 +55,11 @@ class SearchHikeViewModel : ViewModel() {
                 if (startResult != null && endResult != null) {
                     val startCoord = listOf(startResult.lon.toDouble(), startResult.lat.toDouble())
                     val endCoord = listOf(endResult.lon.toDouble(), endResult.lat.toDouble())
+
+                    Log.d("RouteDebug", "Nominatim Start: ${startResult.lat}, ${startResult.lon}")
+                    Log.d("RouteDebug", "Nominatim End: ${endResult.lat}, ${endResult.lon}")
+                    Log.d("RouteDebug", "ORS Request Coords: Start=$startCoord, End=$endCoord")
+
                     val response = ors.getRoute(ORSRequest(listOf(startCoord, endCoord)), apiKey)
                     routePoints = response.features
                         .flatMap { it.geometry.coordinates }
@@ -62,6 +67,14 @@ class SearchHikeViewModel : ViewModel() {
 
                     // Initialize distance remaining with total route length
                     distanceRemaining = calculateTotalRouteLength(routePoints)
+                }
+                else {
+                    Log.e("RouteDebug", "Nominatim search failed for start or end location.")
+                    if (startResult == null) Log.e(
+                        "RouteDebug",
+                        "Start result is null for '$start'"
+                    )
+                    if (endResult == null) Log.e("RouteDebug", "End result is null for '$end'")
                 }
             } catch (e: Exception) {
                 Log.e("Route", "Error: ${e.message}")

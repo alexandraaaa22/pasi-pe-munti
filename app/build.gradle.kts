@@ -1,4 +1,5 @@
 plugins {
+    id("kotlin-kapt")
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
@@ -40,8 +41,6 @@ android {
         jvmTarget = "1.8"
     }
 }
-
-
 
 dependencies {
 
@@ -101,4 +100,13 @@ dependencies {
 //    implementation("io.data2viz.charts:core:1.1.0-eap1")
 //    implementation("io.data2viz.d2v:viz:0.8.12")
 //    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:1.1.5")
+
+    //navigare
+    implementation("com.google.android.gms:play-services-location:21.0.1")
+    implementation("com.google.accompanist:accompanist-permissions:0.32.0")
+
+    val room_version = "2.7.1"
+    implementation("androidx.room:room-runtime:$room_version")
+    kapt("androidx.room:room-compiler:$room_version")//
+    implementation("androidx.room:room-ktx:$room_version")
 }
