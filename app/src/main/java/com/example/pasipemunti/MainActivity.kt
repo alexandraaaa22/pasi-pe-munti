@@ -10,6 +10,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.ui.graphics.Color
+import com.example.pasipemunti.auth.AuthNavigationHost
+import com.example.pasipemunti.auth.LoginScreen
 
 @Composable
 fun SetStatusBarColor() {
@@ -18,13 +20,9 @@ fun SetStatusBarColor() {
         SideEffect {
             val window = (view.context as Activity).window
 
-            // Schimbă mov-ul cu verde sau orice altă culoare dorești
             window.statusBarColor = Color(0xFF2E7D32).toArgb() // Verde
-            // sau poți folosi:
-            // window.statusBarColor = Color.White.toArgb() // Alb
-            // window.statusBarColor = Color(0xFF1976D2).toArgb() // Albastru
 
-            // Iconițele din status bar să fie albe pe fundal verde
+
             WindowCompat.getInsetsController(window, view)
                 .isAppearanceLightStatusBars = false
         }
@@ -36,8 +34,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            BottomMenu()
-            SetStatusBarColor()
+            AuthNavigationHost()
         }
     }
 }
