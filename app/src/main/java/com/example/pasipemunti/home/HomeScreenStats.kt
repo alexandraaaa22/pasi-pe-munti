@@ -52,15 +52,20 @@ import co.yml.charts.ui.linechart.LineChart
 import co.yml.charts.ui.linechart.model.*
 import com.example.pasipemunti.R
 
-object HikingAppTheme {
-    val primaryGreen = Color(0xFF2E7D32)
-    val lightGreen = Color(0xFF66BB6A)
-    val backgroundGreen = Color(0xFFF5F9F5)
-    val accentOrange = Color(0xFFFF8F00)
-    val skyBlue = Color(0xFF90CAF9)
-    val mountainBrown = Color(0xFF8D6E63)
-    val textDark = Color(0xFF424242)
-    val textLight = Color(0xFF757575)
+object AppColors {
+    val primaryGreen = Color(0xFF4CAF50) // A vibrant green
+    val accentGreen = Color(0xFF8BC34A) // A lighter accent green
+    val lightGreen = Color(0xFFC8E6C9) // Very light green for backgrounds
+    val accentOrange = Color(0xFFFF9800) // A warm orange
+    val skyBlue = Color(0xFF2196F3) // A clear blue
+    val accentBlue = Color(0xFF03A9F4) // Another accent blue
+    val textDark = Color(0xFF212121) // Dark text
+    val textMedium = Color(0xFF757575) // Medium grey text
+    val textLight = Color(0xFFBDBDBD) // Light grey text
+    val backgroundLight = Color(0xFFF5F5F5) // Light background
+    val surface = Color(0xFFFFFFFF) // White surface for cards
+    val surfaceVariant = Color(0xFFEEEEEE) // Slightly darker surface for grids etc.
+    val borderLight = Color(0xFFE0E0E0) // Light border
 }
 
 enum class TimeRange(val months: Int, val label: String) {
@@ -110,7 +115,7 @@ fun HikingStatsScreen() {
         ) {
             // Header
             Text(
-                text = "Your Hiking Journey",
+                text = "Rucsacul cu amintiri",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF2E7D32),
@@ -118,7 +123,7 @@ fun HikingStatsScreen() {
             )
 
             Text(
-                text = "Distance hiked per month",
+                text = "Kilometri parcurși pe lună",
                 fontSize = 16.sp,
                 color = Color(0xFF5E5E5E),
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -218,7 +223,7 @@ fun TimeRangeSelector(
                 onClick = { onTimeRangeSelected(timeRange) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (timeRange == selectedTimeRange)
-                        HikingAppTheme.primaryGreen else Color(0xFFE0E0E0)
+                        AppColors.primaryGreen else Color(0xFFE0E0E0)
                 ),
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
@@ -246,8 +251,8 @@ fun ChartTypeSelector(
         verticalAlignment = Alignment.CenterVertically
     ) {
         val types = listOf(
-            ChartType.LINE to "Line Chart",
-            ChartType.BAR to "Bar Chart"
+            ChartType.LINE to "Grafic linie",
+            ChartType.BAR to "Grafic cu bare"
         )
 
         types.forEach { (type, label) ->
@@ -469,10 +474,10 @@ fun EnhancedHikingStatsTable(
                 .padding(16.dp)
         ) {
             Text(
-                text = "Your Hiking Summary",
+                text = "Rezumatul drumețiilor",
                 fontWeight = FontWeight.Bold,
                 fontSize = 18.sp,
-                color = HikingAppTheme.primaryGreen,
+                color = AppColors.primaryGreen,
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
@@ -483,9 +488,9 @@ fun EnhancedHikingStatsTable(
                 EnhancedStatItem(
                     value = "${"%.1f".format(averageKm)}",
                     unit = "km",
-                    label = "Monthly Average",
+                    label = "Media lunară",
                     icon = Icons.Default.CalendarMonth,
-                    iconTint = HikingAppTheme.primaryGreen
+                    iconTint = AppColors.primaryGreen
                 )
 
                 Divider(
@@ -498,9 +503,9 @@ fun EnhancedHikingStatsTable(
                 EnhancedStatItem(
                     value = "${"%.0f".format(totalKm)}",
                     unit = "km",
-                    label = "Total Distance",
+                    label = "Distanța totală",
                     icon = Icons.Default.Hiking,
-                    iconTint = HikingAppTheme.primaryGreen
+                    iconTint = AppColors.primaryGreen
                 )
 
                 Divider(
@@ -513,9 +518,9 @@ fun EnhancedHikingStatsTable(
                 EnhancedStatItem(
                     value = mostActiveMonth,
                     subtitle = "${"%.0f".format(maxKm)} km",
-                    label = "Most Active",
+                    label = "Cea mai activă lună",
                     icon = Icons.Default.EmojiEvents,
-                    iconTint = HikingAppTheme.accentOrange
+                    iconTint = AppColors.accentOrange
                 )
             }
         }
@@ -606,7 +611,7 @@ fun EnhancedStatItem(
                 text = value,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
-                color = HikingAppTheme.textDark
+                color = AppColors.textDark
             )
 
             if (unit != null) {
@@ -614,7 +619,7 @@ fun EnhancedStatItem(
                     text = unit,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    color = HikingAppTheme.textLight,
+                    color = AppColors.textLight,
                     modifier = Modifier.padding(start = 2.dp, bottom = 2.dp)
                 )
             }
@@ -624,7 +629,7 @@ fun EnhancedStatItem(
         Text(
             text = label,
             fontSize = 12.sp,
-            color = HikingAppTheme.textLight
+            color = AppColors.textLight
         )
 
         // Optional subtitle
@@ -632,7 +637,7 @@ fun EnhancedStatItem(
             Text(
                 text = subtitle,
                 fontSize = 12.sp,
-                color = HikingAppTheme.accentOrange,
+                color = AppColors.accentOrange,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier.padding(top = 2.dp)
             )
@@ -672,16 +677,16 @@ fun AchievementsSection() {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.EmojiEvents,
-                        contentDescription = "Achievements",
-                        tint = HikingAppTheme.accentOrange,
+                        contentDescription = "Realizări",
+                        tint = AppColors.accentOrange,
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Recent Achievements",
+                        text = "Realizări recente",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
-                        color = HikingAppTheme.textDark
+                        color = AppColors.textDark
                     )
                 }
 
@@ -689,7 +694,7 @@ fun AchievementsSection() {
                     Icon(
                         imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                         contentDescription = if (expanded) "Collapse" else "Expand",
-                        tint = HikingAppTheme.textLight
+                        tint = AppColors.textLight
                     )
                 }
             }
@@ -701,24 +706,30 @@ fun AchievementsSection() {
             ) {
                 Column(modifier = Modifier.padding(top = 8.dp)) {
                     AchievementItem(
-                        title = "Trail Blazer",
-                        description = "Hiked 5 days in a row",
+                        title = "Bocanci în flăcări",
+                        description = "Ai luat potecile la pas 5 zile la rând",
                         progress = 1.0f,
-                        color = HikingAppTheme.accentOrange
+                        color = AppColors.accentOrange
                     )
 
                     AchievementItem(
-                        title = "Mountain Goat",
-                        description = "Reached 1000m elevation",
+                        title = "Stăpânul altitudinilor",
+                        description = "Ai atins 2000 m altitudine",
                         progress = 0.8f,
-                        color = HikingAppTheme.primaryGreen
+                        color = AppColors.primaryGreen
                     )
 
                     AchievementItem(
-                        title = "Explorer",
-                        description = "Hiked 10 different trails",
+                        title = "Colecționar de trasee",
+                        description = "Ai explorat 10 trasee diferite (și mai vrei)",
                         progress = 0.6f,
-                        color = HikingAppTheme.skyBlue
+                        color = AppColors.skyBlue
+                    )
+                    AchievementItem(
+                        title = "Maestrul potecilor",
+                        description = "250 km parcurși – bocancii tăi merită o vacanță!",
+                        progress = 0.8f,
+                        color = Color(0xFF7A5304),
                     )
                 }
             }
@@ -733,20 +744,26 @@ fun AchievementsSection() {
                 ) {
                     AchievementBadge(
                         progress = 1.0f,
-                        color = HikingAppTheme.accentOrange,
+                        color = AppColors.accentOrange,
                         icon = Icons.Default.LocalFireDepartment
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     AchievementBadge(
                         progress = 0.8f,
-                        color = HikingAppTheme.primaryGreen,
+                        color = AppColors.primaryGreen,
                         icon = Icons.Default.Terrain
                     )
-                    Spacer(modifier = Modifier.width(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     AchievementBadge(
                         progress = 0.6f,
-                        color = HikingAppTheme.skyBlue,
+                        color = AppColors.skyBlue,
                         icon = Icons.Default.Explore
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    AchievementBadge(
+                        progress = 0.8f,
+                        color = Color(0xFF7A5304),
+                        icon = Icons.Default.Hiking
                     )
                 }
             }
@@ -780,12 +797,12 @@ fun AchievementItem(
                 text = title,
                 fontWeight = FontWeight.Medium,
                 fontSize = 16.sp,
-                color = HikingAppTheme.textDark
+                color = AppColors.textDark
             )
             Text(
                 text = description,
                 fontSize = 14.sp,
-                color = HikingAppTheme.textLight
+                color = AppColors.textLight
             )
         }
 
@@ -870,15 +887,15 @@ fun WeatherSection() {
                 Icon(
                     imageVector = Icons.Default.Cloud,
                     contentDescription = "Weather",
-                    tint = HikingAppTheme.skyBlue,
+                    tint = AppColors.skyBlue,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Weather Insights",
+                    text = "Informații meteo",
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    color = HikingAppTheme.textDark
+                    color = AppColors.textDark
                 )
             }
 
@@ -887,27 +904,27 @@ fun WeatherSection() {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 WeatherInsightItem(
-                    title = "Best Weather",
-                    value = "Clear",
-                    subtitle = "32.5 km avg",
+                    title = "",
+                    value = "în medie",
+                    subtitle = "32.5 km",
                     icon = Icons.Default.WbSunny,
-                    iconTint = HikingAppTheme.accentOrange
+                    iconTint = AppColors.accentOrange
                 )
 
                 WeatherInsightItem(
-                    title = "Most Frequent",
-                    value = "Cloudy",
-                    subtitle = "21.3 km avg",
+                    title = "în medie",
+                    value = "Înnorat",
+                    subtitle = "21.3 km",
                     icon = Icons.Default.Cloud,
-                    iconTint = HikingAppTheme.skyBlue
+                    iconTint = AppColors.skyBlue
                 )
 
                 WeatherInsightItem(
-                    title = "Challenging",
-                    value = "Rain",
-                    subtitle = "18.9 km avg",
+                    title = "",
+                    value = "în medie",
+                    subtitle = "18.9 km",
                     icon = Icons.Default.Grain,
-                    iconTint = HikingAppTheme.textLight
+                    iconTint = AppColors.textLight
                 )
             }
         }
@@ -939,13 +956,13 @@ fun WeatherInsightItem(
             text = value,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            color = HikingAppTheme.textDark
+            color = AppColors.textDark
         )
 
         Text(
             text = title,
             fontSize = 12.sp,
-            color = HikingAppTheme.textLight
+            color = AppColors.textLight
         )
 
         Text(
@@ -990,7 +1007,7 @@ fun EnhancedHikingLineChart(
         Text(
             text = "Enhanced animated chart would go here",
             modifier = Modifier.align(Alignment.Center),
-            color = HikingAppTheme.textLight
+            color = AppColors.textLight
         )
     }
 }
@@ -1009,7 +1026,7 @@ fun StatItemPreview() {
         unit = "km",
         label = "Drumeția de astăzi",
         icon = Icons.Default.WbSunny,
-        iconTint = HikingAppTheme.accentOrange
+        iconTint = AppColors.accentOrange
     )
 }
 
@@ -1020,7 +1037,7 @@ fun AchievementItemPreview() {
         title = "Maestrul Potecilor",
         description = "250 km parcurși – bocancii tăi merită o vacanță!",
         progress = 1f,
-        color = HikingAppTheme.skyBlue,
+        color = AppColors.skyBlue,
     )
 }
 
@@ -1029,7 +1046,7 @@ fun AchievementItemPreview() {
 fun AchievementBadgePreview() {
     AchievementBadge(
         progress = 0.75f,
-        color = HikingAppTheme.primaryGreen,
+        color = AppColors.primaryGreen,
         icon = Icons.Default.Hiking
     )
 }

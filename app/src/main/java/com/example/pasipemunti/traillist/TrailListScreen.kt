@@ -30,7 +30,7 @@ import com.example.pasipemunti.data.LocalDatabase // Import
 import com.example.pasipemunti.data.GPXTrail // Import modelul de domeniu/UI
 import com.example.pasipemunti.ui.TrailListViewModel // Import
 import com.example.pasipemunti.ui.TrailListViewModelFactory // Import
-import com.example.pasipemunti.home.HikingAppTheme // Asigură-te că importul e corect
+import com.example.pasipemunti.home.AppColors // Asigură-te că importul e corect
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -88,7 +88,7 @@ fun TrailListScreen(
                         text = "Traseele Tale",
                         fontSize = 28.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = HikingAppTheme.primaryGreen
+                        color = AppColors.primaryGreen
                     )
                 },
                 actions = {
@@ -99,7 +99,7 @@ fun TrailListScreen(
                         Icon(
                             imageVector = Icons.Default.Sort,
                             contentDescription = "Sortare",
-                            tint = HikingAppTheme.primaryGreen
+                            tint = AppColors.primaryGreen
                         )
                     }
 
@@ -112,11 +112,11 @@ fun TrailListScreen(
                         Text(
                             text = "Sortare după:",
                             fontWeight = FontWeight.Bold,
-                            color = HikingAppTheme.textDark,
+                            color = AppColors.textDark,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                         )
 
-                        Divider(color = HikingAppTheme.primaryGreen.copy(alpha = 0.3f))
+                        Divider(color = AppColors.primaryGreen.copy(alpha = 0.3f))
 
                         SortOption.values().forEach { option ->
                             DropdownMenuItem(
@@ -127,7 +127,7 @@ fun TrailListScreen(
                                         Text(
                                             text = option.displayName,
                                             color = if (currentSortOption == option)
-                                                HikingAppTheme.primaryGreen else HikingAppTheme.textDark
+                                                AppColors.primaryGreen else AppColors.textDark
                                         )
                                         if (currentSortOption == option) {
                                             Spacer(modifier = Modifier.width(8.dp))
@@ -135,7 +135,7 @@ fun TrailListScreen(
                                                 imageVector = if (isAscending) Icons.Default.KeyboardArrowUp
                                                 else Icons.Default.KeyboardArrowDown,
                                                 contentDescription = if (isAscending) "Crescător" else "Descrescător",
-                                                tint = HikingAppTheme.primaryGreen,
+                                                tint = AppColors.primaryGreen,
                                                 modifier = Modifier.size(18.dp)
                                             )
                                         }
@@ -158,7 +158,7 @@ fun TrailListScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = HikingAppTheme.primaryGreen
+                    titleContentColor = AppColors.primaryGreen
                 ),
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
@@ -176,9 +176,9 @@ fun TrailListScreen(
                         .background(
                             brush = Brush.verticalGradient(
                                 colors = listOf(
-                                    HikingAppTheme.backgroundGreen.copy(alpha = 0.3f),
+                                    AppColors.accentGreen.copy(alpha = 0.3f),
                                     Color.White,
-                                    HikingAppTheme.backgroundGreen.copy(alpha = 0.1f)
+                                    AppColors.accentGreen.copy(alpha = 0.1f)
                                 )
                             )
                         )
@@ -198,14 +198,14 @@ fun TrailListScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 CircularProgressIndicator(
-                                    color = HikingAppTheme.primaryGreen,
+                                    color = AppColors.primaryGreen,
                                     strokeWidth = 3.dp,
                                     modifier = Modifier.size(48.dp)
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
                                     text = "Se încarcă traseele...",
-                                    color = HikingAppTheme.textLight,
+                                    color = AppColors.textLight,
                                     fontSize = 16.sp
                                 )
                             }
@@ -219,7 +219,7 @@ fun TrailListScreen(
                             elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                             shape = RoundedCornerShape(16.dp),
                             colors = CardDefaults.cardColors(
-                                containerColor = HikingAppTheme.primaryGreen.copy(alpha = 0.1f)
+                                containerColor = AppColors.primaryGreen.copy(alpha = 0.1f)
                             )
                         ) {
                             Column(
@@ -238,13 +238,13 @@ fun TrailListScreen(
                                         Icon(
                                             imageVector = Icons.Default.Hiking,
                                             contentDescription = "Trails",
-                                            tint = HikingAppTheme.primaryGreen,
+                                            tint = AppColors.primaryGreen,
                                             modifier = Modifier.size(24.dp)
                                         )
                                         Spacer(modifier = Modifier.width(12.dp))
                                         Text(
                                             text = "${sortedTrails.size} trasee disponibile",
-                                            color = HikingAppTheme.primaryGreen,
+                                            color = AppColors.primaryGreen,
                                             fontSize = 16.sp,
                                             fontWeight = FontWeight.SemiBold
                                         )
@@ -260,14 +260,14 @@ fun TrailListScreen(
                                     Icon(
                                         imageVector = Icons.Default.Sort,
                                         contentDescription = "Sortare",
-                                        tint = HikingAppTheme.primaryGreen.copy(alpha = 0.7f),
+                                        tint = AppColors.primaryGreen.copy(alpha = 0.7f),
                                         modifier = Modifier.size(16.dp)
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = "Sortate după ${currentSortOption.displayName.lowercase()} " +
                                                 "(${if (isAscending) "crescător" else "descrescător"})",
-                                        color = HikingAppTheme.primaryGreen.copy(alpha = 0.8f),
+                                        color = AppColors.primaryGreen.copy(alpha = 0.8f),
                                         fontSize = 13.sp,
                                         fontWeight = FontWeight.Medium
                                     )
@@ -309,7 +309,7 @@ fun TrailCard(
             .shadow(
                 elevation = 8.dp,
                 shape = RoundedCornerShape(20.dp),
-                ambientColor = HikingAppTheme.primaryGreen.copy(alpha = 0.1f)
+                ambientColor = AppColors.primaryGreen.copy(alpha = 0.1f)
             )
             .animateContentSize(
                 animationSpec = tween(
@@ -334,7 +334,7 @@ fun TrailCard(
             ) {
                 Text(
                     text = trail.name,
-                    color = HikingAppTheme.textDark,
+                    color = AppColors.textDark,
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f),
@@ -345,7 +345,7 @@ fun TrailCard(
                 Icon(
                     imageVector = Icons.Default.ArrowForward,
                     contentDescription = "Vizualizează",
-                    tint = HikingAppTheme.primaryGreen,
+                    tint = AppColors.primaryGreen,
                     modifier = Modifier.size(24.dp)
                 )
             }
@@ -358,7 +358,7 @@ fun TrailCard(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = HikingAppTheme.backgroundGreen.copy(alpha = 0.1f)
+                    containerColor = AppColors.accentGreen.copy(alpha = 0.1f)
                 )
             ) {
                 Row(
@@ -378,7 +378,7 @@ fun TrailCard(
                         modifier = Modifier
                             .height(50.dp)
                             .width(1.dp),
-                        color = HikingAppTheme.primaryGreen.copy(alpha = 0.3f)
+                        color = AppColors.primaryGreen.copy(alpha = 0.3f)
                     )
 
                     TrailStatItem(
@@ -392,7 +392,7 @@ fun TrailCard(
                         modifier = Modifier
                             .height(50.dp)
                             .width(1.dp),
-                        color = HikingAppTheme.primaryGreen.copy(alpha = 0.3f)
+                        color = AppColors.primaryGreen.copy(alpha = 0.3f)
                     )
 
                     TrailStatItem(
@@ -418,13 +418,13 @@ fun TrailCard(
                         Icon(
                             imageVector = Icons.Default.LocationOn,
                             contentDescription = "Zona",
-                            tint = HikingAppTheme.primaryGreen,
+                            tint = AppColors.primaryGreen,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = trail.zone,
-                            color = HikingAppTheme.textLight,
+                            color = AppColors.textLight,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -439,13 +439,13 @@ fun TrailCard(
                         Icon(
                             imageVector = Icons.Default.Timer,
                             contentDescription = "Durata",
-                            tint = HikingAppTheme.primaryGreen,
+                            tint = AppColors.primaryGreen,
                             modifier = Modifier.size(18.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Durata: ${formatDuration(trail.duration)}",
-                            color = HikingAppTheme.textLight,
+                            color = AppColors.textLight,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -470,7 +470,7 @@ fun TrailStatItem(
         Icon(
             imageVector = icon,
             contentDescription = label,
-            tint = HikingAppTheme.primaryGreen,
+            tint = AppColors.primaryGreen,
             modifier = Modifier.size(28.dp)
         )
         Spacer(modifier = Modifier.height(6.dp))
@@ -481,12 +481,12 @@ fun TrailStatItem(
             Text(
                 text = value,
                 fontWeight = FontWeight.Bold,
-                color = HikingAppTheme.textDark,
+                color = AppColors.textDark,
                 fontSize = 18.sp
             )
             Text(
                 text = unit,
-                color = HikingAppTheme.textLight,
+                color = AppColors.textLight,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(start = 2.dp)
             )
@@ -494,7 +494,7 @@ fun TrailStatItem(
 
         Text(
             text = label,
-            color = HikingAppTheme.textLight,
+            color = AppColors.textLight,
             fontSize = 11.sp,
             fontWeight = FontWeight.Medium,
             maxLines = 1

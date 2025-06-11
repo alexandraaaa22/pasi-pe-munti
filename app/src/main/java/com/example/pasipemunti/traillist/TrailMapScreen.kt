@@ -20,7 +20,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.navigation.NavController
 import com.example.pasipemunti.R
-import com.example.pasipemunti.home.HikingAppTheme
+import com.example.pasipemunti.home.AppColors
 import com.example.pasipemunti.ui.TrailListViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -194,7 +194,7 @@ fun TrailMapScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = HikingAppTheme.primaryGreen,
+                    containerColor = AppColors.primaryGreen,
                     titleContentColor = Color.White,
                     navigationIconContentColor = Color.White
                 )
@@ -223,12 +223,12 @@ fun TrailMapScreen(
                             horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally
                         ) {
                             CircularProgressIndicator(
-                                color = HikingAppTheme.primaryGreen
+                                color = AppColors.primaryGreen
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "Se încarcă harta...",
-                                color = HikingAppTheme.textLight
+                                color = AppColors.textLight
                             )
                         }
                     }
