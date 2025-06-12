@@ -27,8 +27,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 
 @Composable
-fun LoginScreen(navController: NavController, viewModel: LoginViewModel = viewModel()) {
+fun LoginScreen(navController: NavController) {
     val context = LocalContext.current
+
+    val viewModel: LoginViewModel = viewModel(
+        factory = LoginViewModelFactory(context)
+    )
+
     val loginState by viewModel.loginResult.collectAsState()
 
     var email by remember { mutableStateOf("") }

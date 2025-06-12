@@ -10,8 +10,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.*
+import com.example.pasipemunti.auth.UserPreferencesManager
 import com.example.pasipemunti.data.LocalDatabase
 import com.example.pasipemunti.home.HikingStatsScreen
+import com.example.pasipemunti.profile.ProfileScreen
+import com.example.pasipemunti.profile.ProfileViewModel
+import com.example.pasipemunti.profile.ProfileViewModelFactory
 import com.example.pasipemunti.searchhike.SearchHikeScreen
 import com.example.pasipemunti.traillist.TrailMapScreen
 import com.example.pasipemunti.ui.BottomMenuItem
@@ -29,6 +33,10 @@ fun BottomMenu() {
     // NOU: Inițializează TrailListViewModel cu Factory-ul său
     val trailListViewModel: TrailListViewModel = viewModel(
         factory = TrailListViewModelFactory(LocalDatabase.getDatabase(context).gpxTrailDao())
+    )
+
+    val profileViewModel: ProfileViewModel = viewModel(
+        factory = ProfileViewModelFactory(UserPreferencesManager.getInstance(context))
     )
 
     val items = listOf(
@@ -94,7 +102,7 @@ fun BottomMenu() {
                 com.example.pasipemunti.traillist.TrailMapScreen(navController, trailListViewModel)
             }
             composable("map") { MapScreen() }
-            composable("profile") { ProfileScreen() }
+            composable("profile") { ProfileScreen(profileViewModel) }
         }
     }
 }
@@ -122,10 +130,10 @@ fun MapScreen() {
     Text("Screen with trails", Modifier.padding(16.dp))
 }
 
-@Composable
-fun ProfileScreen() {
-    Text("Profile screen", Modifier.padding(16.dp))
-}
+//@Composable
+//fun ProfileScreen() {
+//    ProfileScreen()
+//}
 
 // @Preview
 // @Composable

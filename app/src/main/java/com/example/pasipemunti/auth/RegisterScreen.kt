@@ -57,8 +57,13 @@ import androidx.compose.material3.TextButton
 
 
 @Composable
-fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = viewModel()) {
+fun RegisterScreen(navController: NavController) {
     val context = LocalContext.current
+
+    val viewModel: RegisterViewModel = viewModel(
+        factory = RegisterViewModelFactory(context)
+    )
+
     val result by viewModel.registerResult.collectAsState()
 
     var username by remember { mutableStateOf("") }
