@@ -26,11 +26,11 @@ import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Polyline
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pasipemunti.R
+import com.example.pasipemunti.auth.UserPreferencesManager
 import org.osmdroid.views.overlay.Marker
 import com.google.android.gms.location.LocationServices
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.accompanist.permissions.isGranted
 import java.util.concurrent.TimeUnit
 import kotlin.math.roundToInt
 
@@ -50,6 +50,8 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
     val currentAltitude by remember { derivedStateOf { viewModel.currentAltitude } }
     val elapsedTimeMillis by remember { derivedStateOf { viewModel.elapsedTimeMillis } }
 
+    val userPrefs = remember { UserPreferencesManager.getInstance(context) }
+    val userId = userPrefs.getUserData()?.userId
 
     val locationPermissionsState = rememberMultiplePermissionsState(
         listOf(
@@ -216,7 +218,6 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
             }
         }
 
-        // Navigation Stats Card (Visible when navigating)
         AnimatedVisibility(
             visible = isNavigating,
             enter = fadeIn(),
@@ -275,7 +276,6 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        // Current Altitude
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(text = "Altitudine", style = MaterialTheme.typography.labelMedium)
                             Text(
@@ -284,7 +284,6 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
                                 color = Color.DarkGray
                             )
                         }
-                        // Elapsed Time
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(text = "Timp", style = MaterialTheme.typography.labelMedium)
                             Text(
@@ -305,11 +304,26 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
                     ) {
                         Text("Stop Navigation", color = Color.White)
                     }
+
+                    Spacer(modifier = Modifier.height(12.dp)) // Spațiu între butoane
+
+                    Button(
+                        onClick = {
+                            userId?.let {
+                                viewModel.finishHike(userId = it)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(0.8f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF036e29) // Verde închis
+                        )
+                    ) {
+                        Text("Finalizează drumeția", color = Color.White)
+                    }
                 }
             }
         }
 
-        // Start/Stop Navigation Button (always visible at a fixed position, not tied to the search bar)
         if (routePoints.isNotEmpty() && !isNavigating) { // Show Start button only if route is loaded and not navigating
             Button(
                 onClick = {
@@ -329,7 +343,6 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
                 Text("Începe traseul", color = Color.White)
             }
         }
-        // Removed the Stop Navigation button from the original spot, it's now inside the navigation card
     }
 }
 

@@ -13,6 +13,7 @@ import androidx.navigation.compose.*
 import com.example.pasipemunti.auth.UserPreferencesManager
 import com.example.pasipemunti.data.LocalDatabase
 import com.example.pasipemunti.home.HikingStatsScreen
+import com.example.pasipemunti.maptrailcollection.MapTrailsScreen
 import com.example.pasipemunti.profile.ProfileScreen
 import com.example.pasipemunti.profile.ProfileViewModel
 import com.example.pasipemunti.profile.ProfileViewModelFactory
@@ -28,9 +29,8 @@ fun BottomMenu() {
     val navController = rememberNavController()
     var selectedItem by remember { mutableStateOf<BottomMenuItem>(BottomMenuItem.Home) }
 
-    // NOU: Obține contextul pentru a inițializa baza de date
+    // contextul pt bd
     val context = LocalContext.current
-    // NOU: Inițializează TrailListViewModel cu Factory-ul său
     val trailListViewModel: TrailListViewModel = viewModel(
         factory = TrailListViewModelFactory(LocalDatabase.getDatabase(context).gpxTrailDao())
     )
@@ -38,6 +38,9 @@ fun BottomMenu() {
     val profileViewModel: ProfileViewModel = viewModel(
         factory = ProfileViewModelFactory(UserPreferencesManager.getInstance(context))
     )
+
+    // Moved userId inside BottomMenu composable so it can be accessed by HomeScreen
+    val userId = UserPreferencesManager.getInstance(context).getUserData()?.userId
 
     val items = listOf(
         BottomMenuItem.TrailList,
@@ -90,7 +93,10 @@ fun BottomMenu() {
             startDestination = "home",
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable("home") { HomeScreen() }
+            composable("home") {
+                // Pass userId to HomeScreen
+                HomeScreen(userId = userId.toString())
+            }
             composable("searchHike") { SearchHikeScreen() }
             composable("trailList") {
                 // Pasăm ViewModel-ul deja instanțiat
@@ -121,13 +127,24 @@ fun TrailListScreen(
 
 
 @Composable
-fun HomeScreen() {
-    HikingStatsScreen()
+fun HomeScreen(userId: String?) {
+    // Handle the case where userId might be null
+    userId?.let { id ->
+        HikingStatsScreen(userId = id)
+    } ?: run {
+        // Show a loading or error state when userId is null
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = androidx.compose.ui.Alignment.Center
+        ) {
+            Text("Loading user data...")
+        }
+    }
 }
 
 @Composable
 fun MapScreen() {
-    Text("Screen with trails", Modifier.padding(16.dp))
+    MapTrailsScreen()
 }
 
 //@Composable

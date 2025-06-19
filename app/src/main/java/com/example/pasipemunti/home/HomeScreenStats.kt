@@ -40,6 +40,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -51,6 +52,7 @@ import co.yml.charts.ui.barchart.models.*
 import co.yml.charts.ui.linechart.LineChart
 import co.yml.charts.ui.linechart.model.*
 import com.example.pasipemunti.R
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 object AppColors {
     val primaryGreen = Color(0xFF4CAF50) // A vibrant green
@@ -78,13 +80,23 @@ enum class ChartType {
 }
 
 @Composable
-fun HikingStatsScreen() {
+fun HikingStatsScreen(
+    userId: String, // Adaugă userId ca parametru
+    viewModel: HikingStatsViewModel = viewModel()
+) {
     var selectedTimeRange by remember { mutableStateOf(TimeRange.SIX_MONTHS) }
     var selectedChartType by remember { mutableStateOf(ChartType.BAR) }
 
-    // Monthly hiking data (km)
-    val hikingData = listOf(15f, 0f, 26f, 19f, 32f, 24f, 18f, 29f, 21f, 27f, 15f, 30f)
-    val months = listOf("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+    // Observă datele din ViewModel
+    val hikingData by viewModel.hikingData
+    val months by viewModel.months
+    val isLoading by viewModel.isLoading
+    val error by viewModel.error
+
+    // Încarcă datele când se schimbă timpul sau userId
+    LaunchedEffect(selectedTimeRange, userId) {
+        viewModel.loadHikingData(userId, selectedTimeRange)
+    }
 
     // Filter data based on selected time range
     val displayedData = hikingData.take(selectedTimeRange.months)
@@ -155,16 +167,79 @@ fun HikingStatsScreen() {
                         .fillMaxSize()
                         .padding(16.dp)
                 ) {
-                    // Chart
-                    when (selectedChartType) {
-                        ChartType.BAR -> HikingBarChart(
-                            hikingData = displayedData,
-                            months = displayedMonths
-                        )
-                        ChartType.LINE -> HikingLineChart(
-                            hikingData = displayedData,
-                            months = displayedMonths
-                        )
+                    when {
+                        isLoading -> {
+                            // Loading indicator
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    color = AppColors.primaryGreen
+                                )
+                            }
+                        }
+                        error != null -> {
+                            // Error message
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    Text(
+                                        text = "Eroare",
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Red
+                                    )
+                                    Text(
+                                        text = error ?: "Eroare necunoscută",
+                                        fontSize = 14.sp,
+                                        color = AppColors.textLight,
+                                        textAlign = TextAlign.Center
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Button(
+                                        onClick = {
+                                            viewModel.loadHikingData(userId, selectedTimeRange)
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = AppColors.primaryGreen
+                                        )
+                                    ) {
+                                        Text("Reîncarcă")
+                                    }
+                                }
+                            }
+                        }
+                        displayedData.isNotEmpty() -> {
+                            // Chart
+                            when (selectedChartType) {
+                                ChartType.BAR -> HikingBarChart(
+                                    hikingData = displayedData,
+                                    months = displayedMonths
+                                )
+                                ChartType.LINE -> HikingLineChart(
+                                    hikingData = displayedData,
+                                    months = displayedMonths
+                                )
+                            }
+                        }
+                        else -> {
+                            // No data message
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "Nu există date disponibile",
+                                    fontSize = 16.sp,
+                                    color = AppColors.textLight
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -179,29 +254,31 @@ fun HikingStatsScreen() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Stats summary card - ensure it's visible
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFF5F9F5)
-                ),
-                elevation = CardDefaults.cardElevation(
-                    defaultElevation = 2.dp
-                )
-            ) {
-                EnhancedHikingStatsTable(
-                    kmPerMonth = displayedData,
-                    months = displayedMonths
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+            // Stats summary card - doar dacă avem date
+            if (displayedData.isNotEmpty()) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = Color(0xFFF5F9F5)
+                    ),
+                    elevation = CardDefaults.cardElevation(
+                        defaultElevation = 2.dp
+                    )
+                ) {
+                    EnhancedHikingStatsTable(
+                        kmPerMonth = displayedData,
+                        months = displayedMonths
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                AchievementsSection()
+                    AchievementsSection()
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                WeatherSection()
+                    WeatherSection()
+                }
             }
         }
     }
