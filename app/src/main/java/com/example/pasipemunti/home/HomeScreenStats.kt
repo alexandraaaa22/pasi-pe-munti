@@ -7,17 +7,22 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.ExpandLess
@@ -26,6 +31,7 @@ import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Grain
 import androidx.compose.material.icons.filled.Hiking
 import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material.icons.filled.WbSunny
 import androidx.compose.material3.*
@@ -92,6 +98,10 @@ fun HikingStatsScreen(
     val months by viewModel.months
     val isLoading by viewModel.isLoading
     val error by viewModel.error
+
+    val achievements by viewModel.achievements
+    val isAchievementsLoading by viewModel.isAchievementsLoading
+    val achievementsError by viewModel.achievementsError
 
     // Încarcă datele când se schimbă timpul sau userId
     LaunchedEffect(selectedTimeRange, userId) {
@@ -273,7 +283,11 @@ fun HikingStatsScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    AchievementsSection()
+                    AchievementsSection(
+                        achievements = achievements,
+                        isLoading = isAchievementsLoading,
+                        error = achievementsError
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -604,40 +618,6 @@ fun EnhancedHikingStatsTable(
     }
 }
 
-@Composable
-fun StatItem(
-    value: String,
-    label: String,
-    subtitle: String? = null,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier.padding(horizontal = 4.dp)
-    ) {
-        Text(
-            text = value,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF2E7D32)
-        )
-
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            color = Color(0xFF5E5E5E)
-        )
-
-        if (subtitle != null) {
-            Text(
-                text = subtitle,
-                fontSize = 12.sp,
-                color = Color(0xFF757575),
-                modifier = Modifier.padding(top = 2.dp)
-            )
-        }
-    }
-}
 
 @Composable
 fun EnhancedStatItem(
@@ -722,9 +702,39 @@ fun EnhancedStatItem(
     }
 }
 
+fun getAchievementIcon(iconName: String?): ImageVector {
+    return when (iconName) {
+        "distance" -> Icons.Default.Hiking
+        "consecutive_days" -> Icons.Default.LocalFireDepartment
+        "elevation" -> Icons.Default.Terrain
+        "routes" -> Icons.Default.Explore
+        "weather_sunny" -> Icons.Default.WbSunny
+        "weather_cloudy" -> Icons.Default.Cloud
+        "weather_rainy" -> Icons.Default.Grain
+        else -> Icons.Default.EmojiEvents
+    }
+}
+
+fun getAchievementColor(iconName: String?): Color {
+    return when (iconName) {
+        "distance" -> Color(0xFF7A5304)
+        "consecutive_days" -> AppColors.accentOrange
+        "elevation" -> AppColors.primaryGreen
+        "routes" -> AppColors.skyBlue
+        "weather_sunny" -> AppColors.accentOrange
+        "weather_cloudy" -> AppColors.skyBlue
+        "weather_rainy" -> AppColors.textLight
+        else -> AppColors.primaryGreen
+    }
+}
+
 // New Achievement Section
 @Composable
-fun AchievementsSection() {
+fun AchievementsSection(
+    achievements: List<Achievement>,
+    isLoading: Boolean,
+    error: String?
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Card(
@@ -760,11 +770,32 @@ fun AchievementsSection() {
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Realizări recente",
+                        text = "Realizări",
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp,
                         color = AppColors.textDark
                     )
+
+                    // Badge pentru realizările obținute
+                    val earnedCount = achievements.count { it.earned }
+                    if (earnedCount > 0) {
+                        Badge(
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+                                .background(
+                                    AppColors.accentOrange,
+                                    RoundedCornerShape(12.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = earnedCount.toString(),
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
 
                 IconButton(onClick = { expanded = !expanded }) {
@@ -776,72 +807,81 @@ fun AchievementsSection() {
                 }
             }
 
-            AnimatedVisibility(
-                visible = expanded,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                Column(modifier = Modifier.padding(top = 8.dp)) {
-                    AchievementItem(
-                        title = "Bocanci în flăcări",
-                        description = "Ai luat potecile la pas 5 zile la rând",
-                        progress = 1.0f,
-                        color = AppColors.accentOrange
-                    )
-
-                    AchievementItem(
-                        title = "Stăpânul altitudinilor",
-                        description = "Ai atins 2000 m altitudine",
-                        progress = 0.8f,
-                        color = AppColors.primaryGreen
-                    )
-
-                    AchievementItem(
-                        title = "Colecționar de trasee",
-                        description = "Ai explorat 10 trasee diferite (și mai vrei)",
-                        progress = 0.6f,
-                        color = AppColors.skyBlue
-                    )
-                    AchievementItem(
-                        title = "Maestrul potecilor",
-                        description = "250 km parcurși – bocancii tăi merită o vacanță!",
-                        progress = 0.8f,
-                        color = Color(0xFF7A5304),
+            // Loading state
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(60.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(
+                        color = AppColors.primaryGreen,
+                        strokeWidth = 2.dp
                     )
                 }
             }
 
-            if (!expanded) {
-                // Preview of achievements when collapsed
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.Center
+            // Error state
+            else if (error != null) {
+                Text(
+                    text = error,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
+            // Content
+            else {
+                AnimatedVisibility(
+                    visible = expanded,
+                    enter = fadeIn() + expandVertically(),
+                    exit = fadeOut() + shrinkVertically()
                 ) {
-                    AchievementBadge(
-                        progress = 1.0f,
-                        color = AppColors.accentOrange,
-                        icon = Icons.Default.LocalFireDepartment
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    AchievementBadge(
-                        progress = 0.8f,
-                        color = AppColors.primaryGreen,
-                        icon = Icons.Default.Terrain
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    AchievementBadge(
-                        progress = 0.6f,
-                        color = AppColors.skyBlue,
-                        icon = Icons.Default.Explore
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    AchievementBadge(
-                        progress = 0.8f,
-                        color = Color(0xFF7A5304),
-                        icon = Icons.Default.Hiking
-                    )
+                    Column(modifier = Modifier.padding(top = 8.dp)) {
+                        achievements.forEach { achievement ->
+                            AchievementItem(
+                                title = achievement.name,
+                                description = achievement.description,
+                                progress = achievement.progress,
+                                color = getAchievementColor(achievement.iconName),
+                                icon = getAchievementIcon(achievement.iconName),
+                                isEarned = achievement.earned
+                            )
+                        }
+                    }
+                }
+
+                if (!expanded && achievements.isNotEmpty()) {
+                    // Preview of achievements when collapsed
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(horizontal = 4.dp)
+                    ) {
+                        items(achievements.take(4)) { achievement ->
+                            AchievementBadge(
+                                progress = achievement.progress,
+                                color = getAchievementColor(achievement.iconName),
+                                icon = getAchievementIcon(achievement.iconName),
+                                isEarned = achievement.earned
+                            )
+                        }
+
+                        if (achievements.size > 4) {
+                            item {
+                                AchievementBadge(
+                                    progress = 0f,
+                                    color = AppColors.textLight,
+                                    icon = Icons.Default.MoreHoriz,
+                                    showMore = true
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -853,29 +893,52 @@ fun AchievementItem(
     title: String,
     description: String,
     progress: Float,
-    color: Color
+    color: Color,
+    icon: ImageVector,
+    isEarned: Boolean
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .background(
+                if (isEarned) color.copy(alpha = 0.05f) else Color.Transparent,
+                RoundedCornerShape(12.dp)
+            )
+            .padding(horizontal = if (isEarned) 12.dp else 0.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         AchievementBadge(
             progress = progress,
             color = color,
-            size = 40.dp
+            icon = icon,
+            size = 50.dp,
+            isEarned = isEarned
         )
 
         Spacer(modifier = Modifier.width(16.dp))
 
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                fontWeight = FontWeight.Medium,
-                fontSize = 16.sp,
-                color = AppColors.textDark
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = title,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 16.sp,
+                    color = AppColors.textDark
+                )
+
+                if (isEarned) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Completed",
+                        tint = color,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .padding(start = 4.dp)
+                    )
+                }
+            }
+
             Text(
                 text = description,
                 fontSize = 14.sp,
@@ -883,12 +946,23 @@ fun AchievementItem(
             )
         }
 
-        Text(
-            text = "${(progress * 100).toInt()}%",
-            fontWeight = FontWeight.Bold,
-            fontSize = 16.sp,
-            color = color
-        )
+        Column(horizontalAlignment = Alignment.End) {
+            Text(
+                text = "${(progress * 100).toInt()}%",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
+                color = if (isEarned) color else AppColors.textLight
+            )
+
+            if (isEarned) {
+                Text(
+                    text = "Obținută!",
+                    fontSize = 12.sp,
+                    color = color,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
     }
 }
 
@@ -896,42 +970,64 @@ fun AchievementItem(
 fun AchievementBadge(
     progress: Float,
     color: Color,
-    icon: ImageVector? = null,
-    size: Dp = 60.dp
+    icon: ImageVector,
+    size: Dp = 60.dp,
+    isEarned: Boolean = false,
+    showMore: Boolean = false
 ) {
     Box(contentAlignment = Alignment.Center) {
         // Progress indicator
         CircularProgressIndicator(
             progress = progress,
             modifier = Modifier.size(size),
-            color = color,
+            color = if (isEarned) color else color.copy(alpha = 0.6f),
             trackColor = color.copy(alpha = 0.2f),
-            strokeWidth = 4.dp
+            strokeWidth = 3.dp
         )
 
         // Center content
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier
-                .size(size - 12.dp)
+                .size(size - 8.dp)
                 .clip(CircleShape)
                 .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            color.copy(alpha = 0.2f),
-                            color.copy(alpha = 0.05f)
+                    if (isEarned) {
+                        Brush.radialGradient(
+                            colors = listOf(
+                                color.copy(alpha = 0.3f),
+                                color.copy(alpha = 0.1f)
+                            )
                         )
-                    )
+                    } else {
+                        Brush.radialGradient(
+                            colors = listOf(
+                                color.copy(alpha = 0.15f),
+                                color.copy(alpha = 0.05f)
+                            )
+                        )
+                    }
                 )
         ) {
-            if (icon != null) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = color,
-                    modifier = Modifier.size(size / 2)
-                )
-            }
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (isEarned) color else color.copy(alpha = 0.6f),
+                modifier = Modifier.size(size / 2.2f)
+            )
+        }
+
+        // Earned indicator
+        if (isEarned) {
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = "Earned",
+                tint = color,
+                modifier = Modifier
+                    .size(16.dp)
+                    .offset(x = (size / 3), y = -(size / 3))
+                    .background(Color.White, CircleShape)
+            )
         }
     }
 }
@@ -1104,17 +1200,6 @@ fun StatItemPreview() {
         label = "Drumeția de astăzi",
         icon = Icons.Default.WbSunny,
         iconTint = AppColors.accentOrange
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AchievementItemPreview() {
-    AchievementItem(
-        title = "Maestrul Potecilor",
-        description = "250 km parcurși – bocancii tăi merită o vacanță!",
-        progress = 1f,
-        color = AppColors.skyBlue,
     )
 }
 
