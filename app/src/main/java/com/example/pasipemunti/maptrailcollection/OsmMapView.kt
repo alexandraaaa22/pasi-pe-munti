@@ -9,15 +9,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.example.pasipemunti.searchhike.SearchHikeViewModel
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import kotlinx.coroutines.launch
 
+fun checkAndRequestLocationPermission(context: Context, viewModel: SearchHikeViewModel) {
+    val permission = android.Manifest.permission.ACCESS_FINE_LOCATION
+    val granted = android.content.pm.PackageManager.PERMISSION_GRANTED
+    val activity = context as? android.app.Activity ?: return
+
+    if (androidx.core.content.ContextCompat.checkSelfPermission(context, permission) != granted) {
+        androidx.core.app.ActivityCompat.requestPermissions(activity, arrayOf(permission), 1001)
+    } else {
+        viewModel.locationPermissionGranted = true
+    }
+}
+
 @Composable
 fun OsmMapView(
     selectedMassif: MountainMassif?,
+    viewModel: SearchHikeViewModel,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -28,11 +42,15 @@ fun OsmMapView(
 
     val trailManager = remember { GpxTrailManager(context) }
 
+    // Configurare osmdroid
     LaunchedEffect(Unit) {
+        checkAndRequestLocationPermission(context, viewModel)
+
         Configuration.getInstance().load(context, context.getSharedPreferences("osmdroid", Context.MODE_PRIVATE))
         Configuration.getInstance().userAgentValue = context.packageName
     }
 
+    // Încarcă traseele când se schimbă zona
     LaunchedEffect(selectedMassif) {
         if (selectedMassif != null) {
             isLoading = true
@@ -42,7 +60,7 @@ fun OsmMapView(
                     trails = loadedTrails
 
                     mapView?.let { map ->
-                        trailManager.addTrailsToMap(map, loadedTrails)
+                        trailManager.addTrailsToMap(map, trails, viewModel)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -54,6 +72,7 @@ fun OsmMapView(
     }
 
     Box(modifier = modifier) {
+        // Componente AndroidView pentru MapView
         AndroidView(
             factory = { ctx ->
                 MapView(ctx).apply {
@@ -67,17 +86,19 @@ fun OsmMapView(
                     mapView = this
 
                     if (trails.isNotEmpty()) {
-                        trailManager.addTrailsToMap(this, trails)
+                        trailManager.addTrailsToMap(this, trails, viewModel)
                     }
                 }
             },
+            update = { map ->
+                if (trails.isNotEmpty()) {
+                    trailManager.addTrailsToMap(map, trails, viewModel)
+                }
+            },
             modifier = Modifier.fillMaxSize()
-        ) { map ->
-            if (trails.isNotEmpty()) {
-                trailManager.addTrailsToMap(map, trails)
-            }
-        }
+        )
 
+        // Indicator de încărcare
         if (isLoading) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -102,6 +123,7 @@ fun OsmMapView(
             }
         }
 
+        // Mesaj fallback dacă nu sunt trasee
         if (!isLoading && trails.isEmpty()) {
             Card(
                 modifier = Modifier
@@ -127,6 +149,7 @@ fun OsmMapView(
         }
     }
 
+    // Cleanup la închiderea Composable-ului
     DisposableEffect(Unit) {
         onDispose {
             mapView?.onDetach()

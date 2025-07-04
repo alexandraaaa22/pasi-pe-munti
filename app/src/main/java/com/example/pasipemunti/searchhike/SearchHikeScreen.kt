@@ -7,15 +7,24 @@ import android.graphics.drawable.BitmapDrawable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -52,6 +61,8 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
 
     val userPrefs = remember { UserPreferencesManager.getInstance(context) }
     val userId = userPrefs.getUserData()?.userId
+
+    var isNavPanelCollapsed by remember { mutableStateOf(false) }
 
     val locationPermissionsState = rememberMultiplePermissionsState(
         listOf(
@@ -123,28 +134,34 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
                     map.overlays.add(startMarker)
                     map.overlays.add(endMarker)
 
-                    // Center map on route start or current location if navigating
                     if (!isNavigating) {
                         map.controller.setCenter(routePoints.first())
+                        map.controller.setZoom(13.0)
                     }
                 }
 
-                // Add current location marker if navigating and location is available
                 currentLocation?.let { loc ->
                     val currentLocationMarker = Marker(map).apply {
                         position = loc
                         setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
                         icon = ContextCompat.getDrawable(context, R.drawable.ic_my_location)?.let { drawable ->
                             (drawable as BitmapDrawable).bitmap.let { bitmap ->
-                                Bitmap.createScaledBitmap(bitmap, 40, 40, true)
+                                Bitmap.createScaledBitmap(bitmap, 48, 48, true)
                             }
                         }?.let { BitmapDrawable(context.resources, it) }
-                        title = "Your Location"
+                        title = "Locația ta"
                     }
                     map.overlays.add(currentLocationMarker)
-                    // Center map on current location during navigation
+
                     if (isNavigating) {
                         map.controller.setCenter(loc)
+
+                        // Zoom mai mare când navighezi, ajustat în funcție de panoul minimizat/extins
+                        if (isNavPanelCollapsed) {
+                            map.controller.setZoom(17.0) // Zoom și mai apropiat când bara e micșorată
+                        } else {
+                            map.controller.setZoom(16.0) // Zoom normal când e panoul mare
+                        }
                     }
                 }
 
@@ -154,7 +171,7 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
         )
 
         // Search Bar (Visible when not navigating)
-        AnimatedVisibility(
+        AnimatedVisibility  (
             visible = !isNavigating,
             enter = fadeIn(),
             exit = fadeOut(),
@@ -220,105 +237,216 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
 
         AnimatedVisibility(
             visible = isNavigating,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier.align(Alignment.BottomCenter) // Place it at the bottom
+            enter = fadeIn() + slideInVertically(initialOffsetY = { it }),
+            exit = fadeOut() + slideOutVertically(targetOffsetY = { it }),
+            modifier = Modifier.align(Alignment.BottomCenter)
         ) {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color.White.copy(alpha = 0.85f)
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+            if (!isNavPanelCollapsed) {
+                // Panoul mare
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 20.dp),
+                    shape = RoundedCornerShape(20.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 12.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White.copy(alpha = 0.95f))
                 ) {
-                    Text(
-                        text = "Navigating",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = Color(0xFF2E7D32),
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                    Divider(modifier = Modifier.fillMaxWidth().height(1.dp).background(Color.LightGray))
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Distance Traveled
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = "Parcurs", style = MaterialTheme.typography.labelMedium)
-                            Text(
-                                text = "${"%.1f".format(distanceTraveled / 1000)} km", // Convert to km
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color(0xFF2E7D32)
-                            )
-                        }
-                        // Distance Remaining
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = "Rămas", style = MaterialTheme.typography.labelMedium)
-                            Text(
-                                text = "${"%.1f".format(distanceRemaining / 1000)} km", // Convert to km
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color(0xFFD32F2F)
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceAround,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = "Altitudine", style = MaterialTheme.typography.labelMedium)
-                            Text(
-                                text = "${currentAltitude.roundToInt()} m",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.DarkGray
-                            )
-                        }
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = "Timp", style = MaterialTheme.typography.labelMedium)
-                            Text(
-                                text = formatElapsedTime(elapsedTimeMillis),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.DarkGray
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Button(
-                        onClick = { viewModel.stopNavigation() },
-                        modifier = Modifier.fillMaxWidth(0.8f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFD32F2F) // A red color for stop
-                        )
-                    ) {
-                        Text("Stop Navigation", color = Color.White)
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp)) // Spațiu între butoane
-
-                    Button(
-                        onClick = {
-                            userId?.let {
-                                viewModel.finishHike(userId = it)
+                        // Buton micșorare sus-dreapta
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp),
+                            contentAlignment = Alignment.TopEnd
+                        ) {
+                            IconButton(onClick = { isNavPanelCollapsed = true }) {
+                                Icon(
+                                    imageVector = Icons.Default.KeyboardArrowDown,
+                                    contentDescription = "Micșorează panoul de navigare",
+                                    tint = Color(0xFF2E7D32)
+                                )
                             }
-                        },
-                        modifier = Modifier.fillMaxWidth(0.8f),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF036e29) // Verde închis
+                        }
+
+                        // Header cu iconiță și titlu
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .background(
+                                        brush = androidx.compose.ui.graphics.Brush.radialGradient(
+                                            colors = listOf(
+                                                Color(0xFF4CAF50),
+                                                Color(0xFF2E7D32)
+                                            )
+                                        ),
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "🧭",
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = "Navigarea activă",
+                                style = MaterialTheme.typography.headlineSmall.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1B5E20)
+                                )
+                            )
+                        }
+
+                        // Bară de progres
+                        val progress = if (distanceRemaining > 0) {
+                            (distanceTraveled / (distanceTraveled + distanceRemaining)).coerceIn(0.0, 1.0)
+                        } else 1.0
+
+                        LinearProgressIndicator(
+                            progress = progress.toFloat(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(4.dp)),
+                            color = Color(0xFF4CAF50),
+                            trackColor = Color(0xFFE8F5E8)
                         )
+
+                        Text(
+                            text = "${(progress * 100).roundToInt()}% complet",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color(0xFF2E7D32),
+                            modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+                        )
+
+                        // Statistici în grid
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            StatCard(
+                                title = "Parcurs",
+                                value = "${"%.1f".format(distanceTraveled / 1000)} km",
+                                icon = "📍",
+                                color = Color(0xFF4CAF50),
+                                backgroundColor = Color(0xFFE8F5E8),
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            StatCard(
+                                title = "Rămas",
+                                value = "${"%.1f".format(distanceRemaining / 1000)} km",
+                                icon = "🎯",
+                                color = Color(0xFFFF6B35),
+                                backgroundColor = Color(0xFFFFF3E0),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            StatCard(
+                                title = "Altitudine",
+                                value = "${currentAltitude.roundToInt()} m",
+                                icon = "⛰️",
+                                color = Color(0xFF795548),
+                                backgroundColor = Color(0xFFF3E5F5),
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            StatCard(
+                                title = "Timp",
+                                value = formatElapsedTime(elapsedTimeMillis),
+                                icon = "⏱️",
+                                color = Color(0xFF3F51B5),
+                                backgroundColor = Color(0xFFE8EAF6),
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+                        // Buton finalizare
+                        Button(
+                            onClick = {
+                                userId?.let {
+                                    viewModel.finishHike(userId = it)
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF2E7D32)
+                            ),
+                            shape = RoundedCornerShape(16.dp),
+                            elevation = ButtonDefaults.buttonElevation(
+                                defaultElevation = 8.dp,
+                                pressedElevation = 12.dp
+                            )
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center
+                            ) {
+                                Text(
+                                    text = "🏁",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(end = 8.dp)
+                                )
+                                Text(
+                                    text = "Finalizează drumeția",
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                // Bara minimizată cu buton săgeată pentru extindere
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)       // Crește lățimea la 70% din lățimea ecranului
+                        .height(72.dp)            // Crește înălțimea la 72 dp
+                        .padding(horizontal = 24.dp, vertical = 24.dp),  // Mai mult padding
+                    shape = RoundedCornerShape(32.dp),  // Marginile mai rotunjite
+                    elevation = CardDefaults.cardElevation(defaultElevation = 12.dp), // Mai multă umbră
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50))
+                ){
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable { isNavPanelCollapsed = false }
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("Finalizează drumeția", color = Color.White)
+                        Text(
+                            text = "Navigare activă",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowUp,
+                            contentDescription = "Extinde panoul de navigare",
+                            tint = Color.White
+                        )
                     }
                 }
             }
@@ -342,6 +470,52 @@ fun SearchHikeScreen(viewModel: SearchHikeViewModel = viewModel()) {
             ) {
                 Text("Începe traseul", color = Color.White)
             }
+        }
+    }
+}
+
+@Composable
+fun StatCard(
+    title: String,
+    value: String,
+    icon: String,
+    color: Color,
+    backgroundColor: Color,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .height(80.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = backgroundColor
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = icon,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 2.dp)
+            )
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelSmall,
+                color = color.copy(alpha = 0.8f),
+                fontWeight = FontWeight.Medium
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleSmall,
+                color = color,
+                fontWeight = FontWeight.Bold
+            )
         }
     }
 }

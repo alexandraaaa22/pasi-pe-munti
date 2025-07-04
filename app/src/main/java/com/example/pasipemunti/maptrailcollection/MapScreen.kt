@@ -1,5 +1,9 @@
 package com.example.pasipemunti.maptrailcollection
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -18,47 +22,77 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.pasipemunti.R
+import com.example.pasipemunti.searchhike.SearchHikeViewModel
+
+
 
 @Composable
-fun MapTrailsScreen() {
+fun MapTrailsScreen(viewModel: SearchHikeViewModel = viewModel()) {
     var selectedMassif by remember { mutableStateOf<MountainMassif?>(null) }
     var showTrailsOnMap by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF87CEEB), // Sky blue
-                        Color(0xFFF0F8FF)  // Alice blue
+    val context = LocalContext.current
+
+    // permission handling
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        viewModel.locationPermissionGranted = isGranted
+    }
+
+    LaunchedEffect(Unit) {
+        when (PackageManager.PERMISSION_GRANTED) {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) -> {
+                viewModel.locationPermissionGranted = true
+            }
+            else -> {
+                locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+        }
+    }
+
+    if (!showTrailsOnMap) {
+        // Ecranul principal cu grid-ul de carduri
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF87CEEB), // Sky blue
+                            Color(0xFFF0F8FF)  // Alice blue
+                        )
                     )
                 )
-            )
-    ) {
-        // Header
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
         ) {
-            Text(
-                text = "Explorează Munții României",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF2E7D32),
-                modifier = Modifier.align(Alignment.Center)
-            )
-        }
+            // Header doar pe ecranul principal
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Explorează Munții României",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2E7D32),
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
 
-        if (!showTrailsOnMap) {
             // Grid cu carduri pentru masivele muntoase
             LazyVerticalGrid(
                 columns = GridCells.Fixed(2),
@@ -77,16 +111,16 @@ fun MapTrailsScreen() {
                     )
                 }
             }
-        } else {
-            // Ecranul cu harta și traseele
-            TrailMapView(
-                selectedMassif = selectedMassif,
-                onBackClick = {
-                    showTrailsOnMap = false
-                    selectedMassif = null
-                }
-            )
         }
+    } else {
+        // Ecranul cu harta - fără header
+        TrailMapView(
+            selectedMassif = selectedMassif,
+            onBackClick = {
+                showTrailsOnMap = false
+                selectedMassif = null
+            }
+        )
     }
 }
 
@@ -210,65 +244,64 @@ fun TrailMapView(
     selectedMassif: MountainMassif?,
     onBackClick: () -> Unit
 ) {
-    Column(
+    Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Header cu buton de întoarcere
-        Row(
+        val viewModel: SearchHikeViewModel = viewModel()
+
+        OsmMapView(
+            selectedMassif = selectedMassif,
+            viewModel = viewModel,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        // Buton de back suprapus pe hartă
+        IconButton(
+            onClick = onBackClick,
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .align(Alignment.TopStart)
+                .padding(16.dp)
+                .background(
+                    color = Color.White.copy(alpha = 0.9f),
+                    shape = CircleShape
+                )
+                .size(48.dp)
         ) {
-            IconButton(
-                onClick = onBackClick,
-                modifier = Modifier
-                    .background(
-                        color = Color.White,
-                        shape = CircleShape
-                    )
-                    .size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color(0xFF2E7D32)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column {
-                Text(
-                    text = selectedMassif?.name ?: "Hartă",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2E7D32)
-                )
-                Text(
-                    text = "${selectedMassif?.trailCount ?: 0} trasee disponibile",
-                    fontSize = 14.sp,
-                    color = Color(0xFF666666)
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Back",
+                tint = Color(0xFF2E7D32),
+                modifier = Modifier.size(24.dp)
+            )
         }
 
-        // Harta cu traseele GPX
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp)
-                .background(
-                    color = Color(0xFFF5F5F5),
-                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)
-                )
-        ) {
-            OsmMapView(
-                selectedMassif = selectedMassif,
+        // Opțional: Card cu informații despre masiv (suprapus în colțul din dreapta sus)
+        selectedMassif?.let { massif ->
+            Card(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(8.dp)
-            )
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White.copy(alpha = 0.9f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(12.dp)
+                ) {
+                    Text(
+                        text = massif.name,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2E7D32)
+                    )
+                    Text(
+                        text = "${massif.trailCount} trasee",
+                        fontSize = 12.sp,
+                        color = Color(0xFF666666)
+                    )
+                }
+            }
         }
     }
 }
