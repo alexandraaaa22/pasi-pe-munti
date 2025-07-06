@@ -228,10 +228,21 @@ class GpxTrailManager(private val context: Context) {
                     "ciucas_babarunca_cabana_vf_ciucas" to "Babarunca – Cabana – Vf. Ciucaș",
                     "ciucas_cheia_saua_gropsoarele" to "Cheia – Șaua Gropșoarele",
                     "ciucas_pasul_bratocea_varful_ciucas" to "Pasul Bratocea – Vf. Ciucaș",
+                    "ciucas_vama_buzaului_vf_ciucas" to "Vama Buzăului – Vf. Ciucaș",
+                    "ciucas_cabana_voina_refugiul_iezer" to "Cabana Voina – Refugiul Iezer",
                     "fagaras_cabana_negoiu_vf_negoiu" to "Cabana Negoiu – Vf. Negoiu",
                     "faragaras_fereastra_zmeilor_cabana_podragu" to "Fereastra Zmeilor – Cabana Podragu",
+                    "fagaras_piscul_negru_vf_lespezi" to "Piscul Negru – Vf. Lespezi",
+                    "fararas_stana_lui_burneei_vf_moldoveanu" to "Stâna lui Burnei – Vf. Moldoveanu",
+                    "fagaras_valea_sambetei_fereastra_mica" to "Valea Sâmbetei – Fereastra Mică",
                     "bucegi_piatra_arsa_caraiman_vf_omu" to "Piatra Arsă – Caraiman – Vf. Omu",
-                    "crai_fantana_lui_botorog_curmatura_piatra_mica" to "Fântâna lui Botorog – Curmătura – Piatra Mică"
+                    "bucegi_rasnov_cabana_malaiesti" to "Râșnov – Cabana Mălăiești",
+                    "bucegi_cheile_tatarului_cabana_padina" to "Cheile Tătarului – Cabana Padina",
+                    "bucegi_valuea_gaura_vf_omu" to "Valea Gaura – Vf. Omu",
+                    "crai_fantana_lui_botorog_curmatura_piatra_mica" to "Fântâna lui Botorog – Curmătura – Piatra Mică",
+                    "crai_pestera_casa_folea_saua_joaca" to "Peștera Casa Folea – Șaua Joaca",
+                    "crai_zarnesti_padina_sindileriei_turnu_padina_hotarului" to "Zărnești – Padina Șindileriei – Turnu – Padina Hotarului",
+                    "crai_fanatana_lui_botorog_prapastiile_zarnestilor_cabana_curmatura" to "Fântâna lui Botorog – Prăpăstiile Zărneștilor – Cabana Curmătura"
                 )
 
                 val fileKey = fileName.removeSuffix(".gpx").lowercase()
