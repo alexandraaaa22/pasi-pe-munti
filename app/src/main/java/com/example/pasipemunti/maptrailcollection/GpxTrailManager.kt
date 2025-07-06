@@ -427,7 +427,6 @@ class GpxTrailManager(private val context: Context) {
         }
     }
 
-
     private fun calculateBounds(points: List<GeoPoint>): org.osmdroid.util.BoundingBox {
         if (points.isEmpty()) {
             return org.osmdroid.util.BoundingBox(46.0, 26.0, 45.0, 25.0) // Romania default

@@ -34,8 +34,6 @@ import coil.compose.AsyncImage
 import com.example.pasipemunti.R
 import com.example.pasipemunti.searchhike.SearchHikeViewModel
 
-
-
 @Composable
 fun MapTrailsScreen(viewModel: SearchHikeViewModel = viewModel()) {
     var selectedMassif by remember { mutableStateOf<MountainMassif?>(null) }
