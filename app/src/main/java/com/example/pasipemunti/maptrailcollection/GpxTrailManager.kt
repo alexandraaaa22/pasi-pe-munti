@@ -271,6 +271,34 @@ class GpxTrailManager(private val context: Context) {
         }
     }
 
+    private fun extractStartEndNames(trail: GpxTrail): Pair<String, String> {
+        val trailName = trail.name
+
+        // Încearcă să split-uiască pe "–" sau "-"
+        val separators = listOf("–", "-", "—") // diferite tipuri de liniuțe
+
+        for (separator in separators) {
+            if (trailName.contains(separator)) {
+                val parts = trailName.split(separator).map { it.trim() }
+                if (parts.size >= 2) {
+                    return Pair(parts.first(), parts.last())
+                }
+            }
+        }
+
+        val startPoint = trail.points.firstOrNull()
+        val endPoint = trail.points.lastOrNull()
+
+        val startName = if (startPoint != null)
+            "Start: ${String.format("%.4f", startPoint.latitude)}, ${String.format("%.4f", startPoint.longitude)}"
+        else "Start necunoscut"
+
+        val endName = if (endPoint != null)
+            "Finish: ${String.format("%.4f", endPoint.latitude)}, ${String.format("%.4f", endPoint.longitude)}"
+        else "Finish necunoscut"
+
+        return Pair(startName, endName)
+    }
 
     fun addTrailsToMap(
         mapView: MapView,
@@ -327,6 +355,8 @@ class GpxTrailManager(private val context: Context) {
     ): InfoWindow
     {
         val context = mapView.context
+
+        viewModel.routePoints = trail.points
 
         val contentLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -391,19 +421,17 @@ class GpxTrailManager(private val context: Context) {
             setTextColor(android.graphics.Color.WHITE)
             setBackgroundColor(Color(0xFF4CAF50).toArgb())
             setPadding(32, 16, 32, 16)
-            setOnClickListener {
-                // Setează punctele traseului și numele locațiilor
-                viewModel.routePoints = trail.points
-                viewModel.start = "Start automat"
-                viewModel.end = "Finish automat"
 
-                if (viewModel.locationPermissionGranted) {
-                    viewModel.startNavigation()
-                    Toast.makeText(context, "Navigarea a început", Toast.LENGTH_SHORT).show()
-                    currentInfoWindow?.close()
-                } else {
-                    Toast.makeText(context, "Permisiunile lipsesc pentru locație!", Toast.LENGTH_SHORT).show()
-                }
+            val (startName, endName) = extractStartEndNames(trail)
+            viewModel.start = startName
+            viewModel.end = endName
+
+            if (viewModel.locationPermissionGranted) {
+                viewModel.startNavigation()
+                Toast.makeText(context, "Navigarea a început pentru $startName → $endName", Toast.LENGTH_SHORT).show()
+                currentInfoWindow?.close()
+            } else {
+                Toast.makeText(context, "Permisiunile lipsesc pentru locație!", Toast.LENGTH_SHORT).show()
             }
 
             layoutParams = LinearLayout.LayoutParams(
