@@ -228,21 +228,10 @@ class GpxTrailManager(private val context: Context) {
                     "ciucas_babarunca_cabana_vf_ciucas" to "Babarunca – Cabana – Vf. Ciucaș",
                     "ciucas_cheia_saua_gropsoarele" to "Cheia – Șaua Gropșoarele",
                     "ciucas_pasul_bratocea_varful_ciucas" to "Pasul Bratocea – Vf. Ciucaș",
-                    "ciucas_vama_buzaului_vf_ciucas" to "Vama Buzăului – Vf. Ciucaș",
-                    "ciucas_cabana_voina_refugiul_iezer" to "Cabana Voina – Refugiul Iezer",
                     "fagaras_cabana_negoiu_vf_negoiu" to "Cabana Negoiu – Vf. Negoiu",
                     "faragaras_fereastra_zmeilor_cabana_podragu" to "Fereastra Zmeilor – Cabana Podragu",
-                    "fagaras_piscul_negru_vf_lespezi" to "Piscul Negru – Vf. Lespezi",
-                    "fararas_stana_lui_burneei_vf_moldoveanu" to "Stâna lui Burnei – Vf. Moldoveanu",
-                    "fagaras_valea_sambetei_fereastra_mica" to "Valea Sâmbetei – Fereastra Mică",
                     "bucegi_piatra_arsa_caraiman_vf_omu" to "Piatra Arsă – Caraiman – Vf. Omu",
-                    "bucegi_rasnov_cabana_malaiesti" to "Râșnov – Cabana Mălăiești",
-                    "bucegi_cheile_tatarului_cabana_padina" to "Cheile Tătarului – Cabana Padina",
-                    "bucegi_valuea_gaura_vf_omu" to "Valea Gaura – Vf. Omu",
-                    "crai_fantana_lui_botorog_curmatura_piatra_mica" to "Fântâna lui Botorog – Curmătura – Piatra Mică",
-                    "crai_pestera_casa_folea_saua_joaca" to "Peștera Casa Folea – Șaua Joaca",
-                    "crai_zarnesti_padina_sindileriei_turnu_padina_hotarului" to "Zărnești – Padina Șindileriei – Turnu – Padina Hotarului",
-                    "crai_fanatana_lui_botorog_prapastiile_zarnestilor_cabana_curmatura" to "Fântâna lui Botorog – Prăpăstiile Zărneștilor – Cabana Curmătura"
+                    "crai_fantana_lui_botorog_curmatura_piatra_mica" to "Fântâna lui Botorog – Curmătura – Piatra Mică"
                 )
 
                 val fileKey = fileName.removeSuffix(".gpx").lowercase()
@@ -271,34 +260,6 @@ class GpxTrailManager(private val context: Context) {
         }
     }
 
-    private fun extractStartEndNames(trail: GpxTrail): Pair<String, String> {
-        val trailName = trail.name
-
-        // Încearcă să split-uiască pe "–" sau "-"
-        val separators = listOf("–", "-", "—") // diferite tipuri de liniuțe
-
-        for (separator in separators) {
-            if (trailName.contains(separator)) {
-                val parts = trailName.split(separator).map { it.trim() }
-                if (parts.size >= 2) {
-                    return Pair(parts.first(), parts.last())
-                }
-            }
-        }
-
-        val startPoint = trail.points.firstOrNull()
-        val endPoint = trail.points.lastOrNull()
-
-        val startName = if (startPoint != null)
-            "Start: ${String.format("%.4f", startPoint.latitude)}, ${String.format("%.4f", startPoint.longitude)}"
-        else "Start necunoscut"
-
-        val endName = if (endPoint != null)
-            "Finish: ${String.format("%.4f", endPoint.latitude)}, ${String.format("%.4f", endPoint.longitude)}"
-        else "Finish necunoscut"
-
-        return Pair(startName, endName)
-    }
 
     fun addTrailsToMap(
         mapView: MapView,
@@ -355,8 +316,6 @@ class GpxTrailManager(private val context: Context) {
     ): InfoWindow
     {
         val context = mapView.context
-
-        viewModel.routePoints = trail.points
 
         val contentLayout = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
@@ -421,17 +380,19 @@ class GpxTrailManager(private val context: Context) {
             setTextColor(android.graphics.Color.WHITE)
             setBackgroundColor(Color(0xFF4CAF50).toArgb())
             setPadding(32, 16, 32, 16)
+            setOnClickListener {
+                // Setează punctele traseului și numele locațiilor
+                viewModel.routePoints = trail.points
+                viewModel.start = "Start automat"
+                viewModel.end = "Finish automat"
 
-            val (startName, endName) = extractStartEndNames(trail)
-            viewModel.start = startName
-            viewModel.end = endName
-
-            if (viewModel.locationPermissionGranted) {
-                viewModel.startNavigation()
-                Toast.makeText(context, "Navigarea a început pentru $startName → $endName", Toast.LENGTH_SHORT).show()
-                currentInfoWindow?.close()
-            } else {
-                Toast.makeText(context, "Permisiunile lipsesc pentru locație!", Toast.LENGTH_SHORT).show()
+                if (viewModel.locationPermissionGranted) {
+                    viewModel.startNavigation()
+                    Toast.makeText(context, "Navigarea a început", Toast.LENGTH_SHORT).show()
+                    currentInfoWindow?.close()
+                } else {
+                    Toast.makeText(context, "Permisiunile lipsesc pentru locație!", Toast.LENGTH_SHORT).show()
+                }
             }
 
             layoutParams = LinearLayout.LayoutParams(
@@ -454,6 +415,7 @@ class GpxTrailManager(private val context: Context) {
             }
         }
     }
+
 
     private fun calculateBounds(points: List<GeoPoint>): org.osmdroid.util.BoundingBox {
         if (points.isEmpty()) {
