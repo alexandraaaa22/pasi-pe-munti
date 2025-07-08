@@ -4,21 +4,17 @@ import android.content.Context
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.view.ViewGroup
-import android.webkit.WebView
 import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.pasipemunti.R
 import com.example.pasipemunti.searchhike.SearchHikeViewModel
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.infowindow.InfoWindow
-import org.osmdroid.views.overlay.infowindow.BasicInfoWindow
 import org.w3c.dom.Document
 import org.w3c.dom.NodeList
 import java.io.InputStream
@@ -26,6 +22,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.osmdroid.events.MapEventsReceiver
+import org.osmdroid.util.BoundingBox
 import org.osmdroid.views.overlay.MapEventsOverlay
 import kotlin.math.*
 
@@ -109,9 +106,9 @@ class GpxTrailManager(private val context: Context) {
             "ciucas_babarunca_cabana_vf_ciucas.gpx",
 
             "fagaras_cabana_negoiu_vf_negoiu.gpx",
-            "faragaras_fereastra_zmeilor_cabana_podragu.gpx",
+            "fagaras_fereastra_zmeilor_cabana_podragu.gpx",
             "fagaras_piscul_negru_vf_lespezi.gpx",
-            "fararas_stana_lui_burneei_vf_moldoveanu.gpx",
+            "fagaras_stana_lui_burnei_vf_moldoveanu.gpx",
             "fagaras_valea_sambetei_fereastra_mica.gpx",
 
             "bucegi_piatra_arsa_caraiman_vf_omu.gpx",
@@ -228,11 +225,26 @@ class GpxTrailManager(private val context: Context) {
                     "ciucas_babarunca_cabana_vf_ciucas" to "Babarunca – Cabana – Vf. Ciucaș",
                     "ciucas_cheia_saua_gropsoarele" to "Cheia – Șaua Gropșoarele",
                     "ciucas_pasul_bratocea_varful_ciucas" to "Pasul Bratocea – Vf. Ciucaș",
+                    "ciucas_vama_buzaului_vf_ciucas" to "Vama Buzăului – Vf. Ciucaș",
+                    "ciucas_cabana_voina_refugiul_iezer" to "Cabana Voina – Refugiul Iezer",
+
                     "fagaras_cabana_negoiu_vf_negoiu" to "Cabana Negoiu – Vf. Negoiu",
-                    "faragaras_fereastra_zmeilor_cabana_podragu" to "Fereastra Zmeilor – Cabana Podragu",
+                    "fagaras_fereastra_zmeilor_cabana_podragu" to "Fereastra Zmeilor – Cabana Podragu",
+                    "fagaras_piscul_negru_vf_lespezi" to "Piscul Negru – Vf. Lespezi",
+                    "fagaras_stana_lui_burnei_vf_moldoveanu" to "Stâna lui Burnei – Vf. Moldoveanu",
+                    "fagaras_valea_sambetei_fereastra_mica" to "Valea Sâmbetei – Fereastra Mică",
+
                     "bucegi_piatra_arsa_caraiman_vf_omu" to "Piatra Arsă – Caraiman – Vf. Omu",
-                    "crai_fantana_lui_botorog_curmatura_piatra_mica" to "Fântâna lui Botorog – Curmătura – Piatra Mică"
+                    "bucegi_rasnov_cabana_malaiesti" to "Râșnov – Cabana Mălăiești",
+                    "bucegi_cheile_tatarului_cabana_padina" to "Cheile Tătarului – Cabana Padina",
+                    "bucegi_valuea_gaura_vf_omu" to "Valea Gaura – Vf. Omu",
+
+                    "crai_fantana_lui_botorog_curmatura_piatra_mica" to "Fântâna lui Botorog – Curmătura – Piatra Mică",
+                    "crai_pestera_casa_folea_saua_joaca" to "Peștera – Casa Folea – Șaua Joaca",
+                    "crai_zarnesti_padina_sindileriei_turnu_padina_hotarului" to "Zărnești – Padina Sindileriei – Turnu – Padina Hotarului",
+                    "crai_fanatana_lui_botorog_prapastiile_zarnestilor_cabana_curmatura" to "Fântâna lui Botorog – Prăpăstiile Zărneștilor – Cabana Curmătura"
                 )
+
 
                 val fileKey = fileName.removeSuffix(".gpx").lowercase()
                 val trailName = customNames[fileKey]
@@ -372,7 +384,7 @@ class GpxTrailManager(private val context: Context) {
         }
         contentLayout.addView(difficultyView)
 
-        // 🔘 Buton START (pe care îl vom conecta ulterior)
+// Buton START
         val startButton = TextView(context).apply {
             text = "▶ Start"
             textSize = 14f
@@ -381,7 +393,6 @@ class GpxTrailManager(private val context: Context) {
             setBackgroundColor(Color(0xFF4CAF50).toArgb())
             setPadding(32, 16, 32, 16)
             setOnClickListener {
-                // Setează punctele traseului și numele locațiilor
                 viewModel.routePoints = trail.points
                 viewModel.start = "Start automat"
                 viewModel.end = "Finish automat"
@@ -390,10 +401,18 @@ class GpxTrailManager(private val context: Context) {
                     viewModel.startNavigation()
                     Toast.makeText(context, "Navigarea a început", Toast.LENGTH_SHORT).show()
                     currentInfoWindow?.close()
+
+                    // 🔍 Zoom automat pe traseu
+                    if (mapView is MapView && trail.points.isNotEmpty()) {
+                        val bounds = BoundingBox.fromGeoPoints(trail.points)
+                        mapView.zoomToBoundingBox(bounds, true, 100)
+                    }
+
                 } else {
                     Toast.makeText(context, "Permisiunile lipsesc pentru locație!", Toast.LENGTH_SHORT).show()
                 }
             }
+
 
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -417,9 +436,9 @@ class GpxTrailManager(private val context: Context) {
     }
 
 
-    private fun calculateBounds(points: List<GeoPoint>): org.osmdroid.util.BoundingBox {
+    private fun calculateBounds(points: List<GeoPoint>): BoundingBox {
         if (points.isEmpty()) {
-            return org.osmdroid.util.BoundingBox(46.0, 26.0, 45.0, 25.0) // Romania default
+            return BoundingBox(46.0, 26.0, 45.0, 25.0) // Romania default
         }
 
         var minLat = points.first().latitude
@@ -434,6 +453,6 @@ class GpxTrailManager(private val context: Context) {
             maxLon = maxOf(maxLon, point.longitude)
         }
 
-        return org.osmdroid.util.BoundingBox(maxLat, maxLon, minLat, minLon)
+        return BoundingBox(maxLat, maxLon, minLat, minLon)
     }
 }

@@ -32,16 +32,22 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.pasipemunti.R
+import com.example.pasipemunti.navigation.MiniNavBar
+import com.example.pasipemunti.navigation.NavigationPanel
 import com.example.pasipemunti.searchhike.SearchHikeViewModel
-
-
+import com.google.android.gms.location.LocationServices
+// Adaugă importul pentru UserPreferencesManager
+import com.example.pasipemunti.auth.UserPreferencesManager
 
 @Composable
 fun MapTrailsScreen(viewModel: SearchHikeViewModel = viewModel()) {
     var selectedMassif by remember { mutableStateOf<MountainMassif?>(null) }
     var showTrailsOnMap by remember { mutableStateOf(false) }
+    var isNavigationExpanded by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
+    // Instanțiază UserPreferencesManager
+    val userPreferencesManager = remember { UserPreferencesManager.getInstance(context) }
 
     // permission handling
     val locationPermissionLauncher = rememberLauncherForActivityResult(
@@ -50,7 +56,11 @@ fun MapTrailsScreen(viewModel: SearchHikeViewModel = viewModel()) {
         viewModel.locationPermissionGranted = isGranted
     }
 
+    // Configurare FusedLocationClient
     LaunchedEffect(Unit) {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+        viewModel.setFusedLocationClient(fusedLocationClient)
+
         when (PackageManager.PERMISSION_GRANTED) {
             ContextCompat.checkSelfPermission(
                 context,
@@ -64,63 +74,108 @@ fun MapTrailsScreen(viewModel: SearchHikeViewModel = viewModel()) {
         }
     }
 
-    if (!showTrailsOnMap) {
-        // Ecranul principal cu grid-ul de carduri
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF87CEEB), // Sky blue
-                            Color(0xFFF0F8FF)  // Alice blue
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (!showTrailsOnMap) {
+            // Ecranul principal cu grid-ul de carduri
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color(0xFF87CEEB), // Sky blue
+                                Color(0xFFF0F8FF) // Alice blue
+                            )
                         )
                     )
-                )
-        ) {
-            // Header doar pe ecranul principal
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
             ) {
-                Text(
-                    text = "Explorează Munții României",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2E7D32),
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
+                // Header doar pe ecranul principal
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = "Explorează Munții României",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF2E7D32),
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                }
 
-            // Grid cu carduri pentru masivele muntoase
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
-                items(mountainMassifs) { massif ->
-                    MountainMassifCard(
-                        massif = massif,
-                        onClick = {
-                            selectedMassif = massif
-                            showTrailsOnMap = true
+                // Grid cu carduri pentru masivele muntoase
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    contentPadding = PaddingValues(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(mountainMassifs) { massif ->
+                        MountainMassifCard(
+                            massif = massif,
+                            onClick = {
+                                selectedMassif = massif
+                                showTrailsOnMap = true
+                            }
+                        )
+                    }
+                }
+            }
+        } else {
+            // Ecranul cu harta - fără header
+            TrailMapView(
+                selectedMassif = selectedMassif,
+                onBackClick = {
+                    showTrailsOnMap = false
+                    selectedMassif = null
+                },
+                viewModel = viewModel
+            )
+        }
+
+        // Navigation Panel pentru MapTrailsScreen
+        if (viewModel.isNavigating) {
+            if (isNavigationExpanded) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 16.dp),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    NavigationPanel(
+                        distanceTraveled = viewModel.distanceTraveled,
+                        distanceRemaining = viewModel.distanceRemaining,
+                        currentAltitude = viewModel.currentAltitude,
+                        elapsedTimeMillis = viewModel.elapsedTimeMillis,
+                        onCollapse = { isNavigationExpanded = false },
+                        // *** AICI ESTE MODIFICAREA ***
+                        onFinish = {
+                            // Preluăm userId-ul de la utilizatorul logat
+                            val userId = userPreferencesManager.getUserData()?.userId ?: -1
+                            viewModel.finishHike(
+                                userId = userId, // Transmitem userId-ul real
+                                difficulty = "moderate",
+                                weatherCondition = "sunny"
+                            )
+                            isNavigationExpanded = false
                         }
                     )
                 }
+            } else {
+                // Mini navigation bar
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 16.dp),
+                    verticalArrangement = Arrangement.Bottom,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    MiniNavBar(onExpand = { isNavigationExpanded = true })
+                }
             }
         }
-    } else {
-        // Ecranul cu harta - fără header
-        TrailMapView(
-            selectedMassif = selectedMassif,
-            onBackClick = {
-                showTrailsOnMap = false
-                selectedMassif = null
-            }
-        )
     }
 }
 
@@ -239,16 +294,16 @@ fun MountainMassifCard(
     }
 }
 
+// În MapTrailsScreen.kt - actualizează funcția TrailMapView
 @Composable
 fun TrailMapView(
     selectedMassif: MountainMassif?,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    viewModel: SearchHikeViewModel
 ) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
-        val viewModel: SearchHikeViewModel = viewModel()
-
         OsmMapView(
             selectedMassif = selectedMassif,
             viewModel = viewModel,

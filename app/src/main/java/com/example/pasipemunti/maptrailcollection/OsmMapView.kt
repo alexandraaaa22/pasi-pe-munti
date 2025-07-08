@@ -1,6 +1,10 @@
 package com.example.pasipemunti.maptrailcollection
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -9,12 +13,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import com.example.pasipemunti.R
 import com.example.pasipemunti.searchhike.SearchHikeViewModel
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import kotlinx.coroutines.launch
+import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
+import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 
 fun checkAndRequestLocationPermission(context: Context, viewModel: SearchHikeViewModel) {
     val permission = android.Manifest.permission.ACCESS_FINE_LOCATION
@@ -39,6 +46,8 @@ fun OsmMapView(
     var mapView by remember { mutableStateOf<MapView?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var trails by remember { mutableStateOf<List<GpxTrail>>(emptyList()) }
+
+    val icon = BitmapFactory.decodeResource(context.resources, R.drawable.hiker)
 
     val trailManager = remember { GpxTrailManager(context) }
 
@@ -84,6 +93,19 @@ fun OsmMapView(
                     controller.setCenter(GeoPoint(45.9432, 24.9668))
 
                     mapView = this
+
+                    val myLocationOverlay = MyLocationNewOverlay(GpsMyLocationProvider(ctx), this)
+                    val originalIcon = BitmapFactory.decodeResource(ctx.resources, R.drawable.hiker)
+                    val scaledIcon = Bitmap.createScaledBitmap(originalIcon, 200, 200, true)
+                    myLocationOverlay.setPersonIcon(scaledIcon)
+                    myLocationOverlay.enableMyLocation()
+                    myLocationOverlay.enableFollowLocation()
+                    myLocationOverlay.runOnFirstFix {
+                        Handler(Looper.getMainLooper()).post {
+                            controller.animateTo(myLocationOverlay.myLocation)
+                        }
+                    }
+                    this.overlays.add(myLocationOverlay)
 
                     if (trails.isNotEmpty()) {
                         trailManager.addTrailsToMap(this, trails, viewModel)

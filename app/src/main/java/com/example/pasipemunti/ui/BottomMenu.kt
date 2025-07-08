@@ -18,6 +18,8 @@ import com.example.pasipemunti.profile.ProfileScreen
 import com.example.pasipemunti.profile.ProfileViewModel
 import com.example.pasipemunti.profile.ProfileViewModelFactory
 import com.example.pasipemunti.searchhike.SearchHikeScreen
+import com.example.pasipemunti.searchhike.SearchHikeViewModel
+import com.example.pasipemunti.traillist.TrailListScreen
 import com.example.pasipemunti.traillist.TrailMapScreen
 import com.example.pasipemunti.ui.BottomMenuItem
 import com.example.pasipemunti.ui.TrailListViewModel
@@ -102,10 +104,15 @@ fun BottomMenu() {
                 // Pasăm ViewModel-ul deja instanțiat
                 com.example.pasipemunti.traillist.TrailListScreen(navController, trailListViewModel)
             }
+            composable("trailList") {
+                val context = LocalContext.current
+                val dao = remember { LocalDatabase.getDatabase(context).gpxTrailDao() }
+                val viewModel: TrailListViewModel = viewModel(factory = TrailListViewModelFactory(dao))
+                TrailListScreen(navController = navController, viewModel = viewModel)
+            }
+
             composable("trailMap") {
-                // Pasăm ViewModel-ul deja instanțiat pentru TrailMapScreen
-                // (Acesta va accesa selectedTrail din trailListViewModel)
-                com.example.pasipemunti.traillist.TrailMapScreen(navController, trailListViewModel)
+                TrailMapScreen(navController = navController)
             }
             composable("map") { MapScreen() }
             composable("profile") { ProfileScreen(profileViewModel) }

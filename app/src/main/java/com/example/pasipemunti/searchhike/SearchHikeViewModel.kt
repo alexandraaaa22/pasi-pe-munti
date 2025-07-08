@@ -83,15 +83,20 @@ class SearchHikeViewModel : ViewModel() {
                         .flatMap { it.geometry.coordinates }
                         .map { GeoPoint(it[1], it[0]) }
 
-                    // Initialize distance remaining with total route length
-                    distanceRemaining = calculateTotalRouteLength(routePoints)
-                }
-                else {
+                    // Folosește currentLocation dacă există, altfel primul punct din traseu
+                    val currentLoc = currentLocation ?: routePoints.firstOrNull()
+
+                    distanceRemaining = if (currentLoc != null) {
+                        calculateRemainingDistance(currentLoc, routePoints)
+                    } else {
+                        0.0
+                    }
+
+                    Log.d("RouteDebug", "Distance remaining: $distanceRemaining")
+
+                } else {
                     Log.e("RouteDebug", "Nominatim search failed for start or end location.")
-                    if (startResult == null) Log.e(
-                        "RouteDebug",
-                        "Start result is null for '$start'"
-                    )
+                    if (startResult == null) Log.e("RouteDebug", "Start result is null for '$start'")
                     if (endResult == null) Log.e("RouteDebug", "End result is null for '$end'")
                 }
             } catch (e: Exception) {
@@ -99,6 +104,24 @@ class SearchHikeViewModel : ViewModel() {
             }
         }
     }
+
+
+    private fun calculateRemainingDistance(currentLocation: GeoPoint, route: List<GeoPoint>): Double {
+        if (route.isEmpty()) return 0.0
+
+        // Găsește cel mai apropiat punct din traseu
+        val nearestIndex = route.indices.minByOrNull { i ->
+            currentLocation.distanceToAsDouble(route[i])
+        } ?: return 0.0
+
+        // Calculează distanța de la currentLocation la final
+        var distance = currentLocation.distanceToAsDouble(route[nearestIndex])
+        for (i in nearestIndex until route.size - 1) {
+            distance += route[i].distanceToAsDouble(route[i + 1])
+        }
+        return distance
+    }
+
 
     fun setFusedLocationClient(client: FusedLocationProviderClient) {
         fusedLocationClient = client
@@ -133,8 +156,6 @@ class SearchHikeViewModel : ViewModel() {
     fun startNavigation() {
         if (locationPermissionGranted && fusedLocationClient != null) {
             isNavigating = true
-
-            // Initialize hike tracking
             hikeStartTime = System.currentTimeMillis()
             startLocationName = start
             endLocationName = end
@@ -147,11 +168,24 @@ class SearchHikeViewModel : ViewModel() {
             elapsedTimeMillis = 0L
             currentAltitude = 0.0
 
+            // Re-calculate distanceRemaining when navigation actually starts and currentLocation is valid
+            currentLocation?.let {
+                distanceRemaining = calculateRemainingDistance(it, routePoints)
+                Log.d("StartNavigation", "Initial distance remaining: $distanceRemaining")
+            } ?: run {
+                // Fallback if currentLocation is not yet available, assume starting from route beginning
+                if (routePoints.isNotEmpty()) {
+                    distanceRemaining = calculateTotalRouteLength(routePoints)
+                    Log.d("StartNavigation", "currentLocation null, initialized distance remaining to total route length: $distanceRemaining")
+                } else {
+                    distanceRemaining = 0.0
+                }
+            }
+
             val locationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
-                .setWaitForAccurateLocation(false)
+            .setWaitForAccurateLocation(false)
                 .setMinUpdateIntervalMillis(3000)
                 .build()
-
             try {
                 fusedLocationClient?.requestLocationUpdates(locationRequest, locationCallback, null)
                 startTimer()
@@ -208,6 +242,7 @@ class SearchHikeViewModel : ViewModel() {
     private fun saveHikeToServer(hikeData: HikeRequest) {
         viewModelScope.launch {
             try {
+                Log.d("FinishHike", "Trimitem hike: $hikeData")
                 val response = apiService.saveHike(hikeData)
                 if (response.isSuccessful) {
                     Log.d("HikeSave", "Hike saved successfully: ${response.body()?.message}")
@@ -254,5 +289,28 @@ class SearchHikeViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         stopNavigation()
+    }
+
+    fun requestInitialLocation() {
+        if (locationPermissionGranted && fusedLocationClient != null) {
+            try {
+                fusedLocationClient?.getCurrentLocation(
+                    Priority.PRIORITY_HIGH_ACCURACY,
+                    null
+                )?.addOnSuccessListener { location ->
+                    if (location != null) {
+                        currentLocation = GeoPoint(location.latitude, location.longitude)
+                        currentAltitude = location.altitude
+                        Log.d("SearchHikeViewModel", "Initial location obtained: ${location.latitude}, ${location.longitude}")
+                    } else {
+                        Log.w("SearchHikeViewModel", "Initial location is null")
+                    }
+                }?.addOnFailureListener { e ->
+                    Log.e("SearchHikeViewModel", "Failed to get initial location: ${e.message}")
+                }
+            } catch (e: SecurityException) {
+                Log.e("SearchHikeViewModel", "Location permission not granted: ${e.message}")
+            }
+        }
     }
 }
