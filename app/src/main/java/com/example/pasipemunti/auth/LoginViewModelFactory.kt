@@ -13,3 +13,7 @@ class LoginViewModelFactory(private val context: Context) : ViewModelProvider.Fa
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
+
+// ViewModelFactory -> creeaza LoginViewModel ce are nevoie de Context in constructor
+// Avem nevoie de contextul pentru a initializa UserPreferencesManager
+// Fara acest factory, sistemul nu ar sti cum sa furnizeze Contextul necesar ViewModel-ului

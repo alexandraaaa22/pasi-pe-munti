@@ -1,5 +1,6 @@
 package com.example.pasipemunti.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,7 +26,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+import com.example.pasipemunti.R
 
+//UI pentru ecranul de autentificare
 @Composable
 fun LoginScreen(navController: NavController) {
     val context = LocalContext.current
@@ -41,25 +49,39 @@ fun LoginScreen(navController: NavController) {
     var passwordVisible by remember { mutableStateOf(false) }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF1B5E20),
-                        Color(0xFF2E7D32),
-                        Color(0xFF388E3C)
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // imaginea de fundal
+        Image(
+            painter = painterResource(id = R.drawable.mountain_background),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(radius = 8.dp), // blur effect
+            contentScale = ContentScale.Crop
+        )
+
+        // overlay intunecat
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.3f),
+                            Color.Black.copy(alpha = 0.5f),
+                            Color.Black.copy(alpha = 0.3f)
+                        )
                     )
                 )
-            )
-    ) {
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
             verticalArrangement = Arrangement.Center
         ) {
-            // Header
             Column(
                 modifier = Modifier.padding(bottom = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -77,18 +99,17 @@ fun LoginScreen(navController: NavController) {
                     text = "Bine ai revenit!",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFF1F8E9),
+                    color = Color.White,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
                 Text(
                     text = "Conectează-te pentru a explora",
                     fontSize = 16.sp,
-                    color = Color(0xFFDCEDC8)
+                    color = Color.White.copy(alpha = 0.9f)
                 )
             }
 
-            // Form Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
@@ -218,14 +239,14 @@ fun LoginScreen(navController: NavController) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = null,
-                    tint = Color(0xFFA5D6A7),
+                    tint = Color.White,
                     modifier = Modifier
                         .size(18.dp)
                         .padding(end = 4.dp)
                 )
                 Text(
                     text = "Înapoi",
-                    color = Color(0xFFA5D6A7)
+                    color = Color.White
                 )
             }
         }
@@ -242,3 +263,9 @@ fun LoginScreen(navController: NavController) {
     }
 }
 
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun LoginScreenPreview() {
+    val navController = rememberNavController()
+    LoginScreen(navController)
+}

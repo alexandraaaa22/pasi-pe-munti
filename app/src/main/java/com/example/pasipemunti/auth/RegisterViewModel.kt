@@ -7,14 +7,16 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+//responsabil de logica de înregistrare a unui utilizator nou
 class RegisterViewModel(
     private val context: Context
 ) : ViewModel() {
+
+    // flow pentru a transmite rezultatul înregistrării către UI
     private val _registerResult = MutableStateFlow<UserResponse?>(null)
     val registerResult: StateFlow<UserResponse?> = _registerResult
 
-    private val userPreferencesManager = UserPreferencesManager.getInstance(context)
-
+    // trimite datele utilizatorului catre backend pentru inregistrare
     fun register(
         username: String,
         email: String,
@@ -24,6 +26,7 @@ class RegisterViewModel(
     ) {
         viewModelScope.launch {
             try {
+                // apelul API de inregistrare
                 val response = RetrofitInstance.api.registerUser(
                     RegisterRequest(username, email, password, firstName, lastName)
                 )
@@ -31,7 +34,6 @@ class RegisterViewModel(
                     val userResponse = response.body()
                     _registerResult.value = userResponse
 
-                    // ADAUGĂ: Salvează datele utilizatorului după register reușit
                     userResponse?.let { user ->
                         if (user.error == null) {
                             onRegisterSuccess(context, user, email)
@@ -60,9 +62,10 @@ class RegisterViewModel(
         }
     }
 
+    // salveaza datele utilizatorului in preferinte daca inregistrarea a fost cu succes
     private fun onRegisterSuccess(context: Context, userResponse: UserResponse, email: String) {
         val userPrefsManager = UserPreferencesManager.getInstance(context)
         userPrefsManager.saveUserData(userResponse)
-        userPrefsManager.saveEmail(email) // dacă email-ul nu vine în UserResponse
+        userPrefsManager.saveEmail(email) //  email-ul nu e in UserResponse
     }
 }

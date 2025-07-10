@@ -1,6 +1,7 @@
 package com.example.pasipemunti.auth
 
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,7 +55,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.TextButton
-
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.blur
+import com.example.pasipemunti.R
 
 @Composable
 fun RegisterScreen(navController: NavController) {
@@ -85,18 +89,33 @@ fun RegisterScreen(navController: NavController) {
     }
 
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF1B5E20),
-                        Color(0xFF2E7D32),
-                        Color(0xFF388E3C)
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // Background image cu blur
+        Image(
+            painter = painterResource(id = R.drawable.mountain_background), // înlocuiește cu numele imaginii tale
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(radius = 8.dp), // blur effect
+            contentScale = ContentScale.Crop
+        )
+
+        // Overlay pentru a întuneca imaginea
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.3f),
+                            Color.Black.copy(alpha = 0.5f),
+                            Color.Black.copy(alpha = 0.3f)
+                        )
                     )
                 )
-            )
-    ) {
+        )
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -122,7 +141,7 @@ fun RegisterScreen(navController: NavController) {
                         text = "Alătură-te comunității",
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color(0xFFF1F8E9),
+                        color = Color.White,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
@@ -130,7 +149,7 @@ fun RegisterScreen(navController: NavController) {
                     Text(
                         text = "Explorează trasee noi împreună cu noi",
                         fontSize = 16.sp,
-                        color = Color(0xFFDCEDC8),
+                        color = Color.White.copy(alpha = 0.9f),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -314,14 +333,14 @@ fun RegisterScreen(navController: NavController) {
                     Icon(
                         imageVector = Icons.Default.ArrowBack,
                         contentDescription = null,
-                        tint = Color(0xFFA5D6A7),
+                        tint = Color.White,
                         modifier = Modifier
                             .size(18.dp)
                             .padding(end = 4.dp)
                     )
                     Text(
                         text = "Înapoi la opțiuni",
-                        color = Color(0xFFA5D6A7)
+                        color = Color.White
                     )
                 }
             }

@@ -6,11 +6,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 
+// structura de navigare pentru partea de autentificare
 @Composable
 fun AuthNavigationHost() {
-    val navController = rememberNavController()
+    val navController = rememberNavController() // cu navController, controlam si schimbam ecranele
 
-    NavHost(navController = navController, startDestination = "auth_choice") {
+    //rutele care pot fi urmate
+    NavHost(navController = navController, startDestination = "splash") {
+        composable("splash") { SplashScreen(navController) }
         composable("auth_choice") { AuthChoiceScreen(navController) }
         composable("login") { LoginScreen(navController) }
         composable("register") { RegisterScreen(navController) }

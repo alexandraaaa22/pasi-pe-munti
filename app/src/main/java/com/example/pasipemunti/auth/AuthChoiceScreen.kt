@@ -1,5 +1,6 @@
 package com.example.pasipemunti.auth
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -18,7 +20,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -26,43 +27,64 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.Landscape
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.filled.Login
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.pasipemunti.R
+import androidx.navigation.compose.rememberNavController
 
 @Composable
 fun AuthChoiceScreen(navController: NavController) {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF2D5016), // Verde închis de pădure
-                        Color(0xFF4F7942), // Verde mediu
-                        Color(0xFF6B8E5A)  // Verde deschis
-                    )
-                )
-            )
+        modifier = Modifier.fillMaxSize() //container de baza, ocupa tot spatiul disponibil
     ) {
+        // backgound image
+        Image(
+            painter = painterResource(id = R.drawable.mountain_background),
+            contentDescription = null,
+            modifier = Modifier
+                .fillMaxSize()
+                .blur(radius = 6.dp),
+            contentScale = ContentScale.Crop
+        )
+
+        // overlay intunecat pentru un contrast mai bun
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    brush = Brush.radialGradient(
+                    brush = Brush.verticalGradient(
                         colors = listOf(
-                            Color.White.copy(alpha = 0.1f),
-                            Color.Transparent
-                        ),
-                        radius = 800f,
-                        center = Offset(0f, 0f)
+                            Color.Black.copy(alpha = 0.4f),
+                            Color.Black.copy(alpha = 0.6f),
+                            Color.Black.copy(alpha = 0.4f)
+                        )
                     )
                 )
         )
 
+        // overlay cu gradient verde
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF2D5016).copy(alpha = 0.3f), // Verde închis de pădure
+                            Color(0xFF4F7942).copy(alpha = 0.2f), // Verde mediu
+                            Color(0xFF6B8E5A).copy(alpha = 0.3f)  // Verde deschis
+                        )
+                    )
+                )
+        )
+
+        // continutul principal centrat
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -76,10 +98,11 @@ fun AuthChoiceScreen(navController: NavController) {
                     .padding(bottom = 32.dp),
                 shape = CircleShape,
                 colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFF8BC34A).copy(alpha = 0.2f) // Verde lime transparent
+                    containerColor = Color.White.copy(alpha = 0.15f) // Transparență mai subtilă
                 ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 12.dp)
             ) {
+                // iconita cu muntele
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -88,7 +111,7 @@ fun AuthChoiceScreen(navController: NavController) {
                         imageVector = Icons.Default.Landscape,
                         contentDescription = null,
                         modifier = Modifier.size(60.dp),
-                        tint = Color(0xFFC8E6C9)
+                        tint = Color.White
                     )
                 }
             }
@@ -97,18 +120,19 @@ fun AuthChoiceScreen(navController: NavController) {
                 text = "PașiPeMunți",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFFF1F8E9),
+                color = Color.White,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
             Text(
                 text = "Îndrăznește să cucerești munții",
-                fontSize = 16.sp,
-                color = Color(0xFFDCEDC8),
+                fontSize = 18.sp,
+                color = Color.White.copy(alpha = 0.9f),
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(bottom = 48.dp)
             )
 
+            // buton autentificare
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -148,15 +172,16 @@ fun AuthChoiceScreen(navController: NavController) {
                 }
             }
 
+            //buton inregistrare
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clickable { navController.navigate("register") },
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = Color.Transparent
+                    containerColor = Color.White.copy(alpha = 0.1f)
                 ),
-                border = BorderStroke(2.dp, Color(0xFF81C784))
+                border = BorderStroke(2.dp, Color.White.copy(alpha = 0.8f))
             ) {
                 Box(
                     modifier = Modifier
@@ -171,7 +196,7 @@ fun AuthChoiceScreen(navController: NavController) {
                         Icon(
                             imageVector = Icons.Default.PersonAdd,
                             contentDescription = null,
-                            tint = Color(0xFF81C784),
+                            tint = Color.White, // Schimbat la alb
                             modifier = Modifier
                                 .size(20.dp)
                                 .padding(end = 8.dp)
@@ -180,11 +205,18 @@ fun AuthChoiceScreen(navController: NavController) {
                             text = "Înregistrare",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFF81C784)
+                            color = Color.White // Schimbat la alb
                         )
                     }
                 }
             }
         }
     }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun AuthChoiceScreenPreview() {
+    val navController = rememberNavController()
+    AuthChoiceScreen(navController = navController)
 }

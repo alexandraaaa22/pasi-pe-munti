@@ -13,3 +13,7 @@ class RegisterViewModelFactory(private val context: Context) : ViewModelProvider
         throw IllegalArgumentException("Unknown ViewModel class")
     }
 }
+
+// Metoda create(...) verifica daca se cere o instanta de RegisterViewModel si, daca da,
+// o construieste manual folosind contextul oferit. Daca se cere alt tip de ViewModel,
+// factory-ul arunca o exceptie pentru a preveni instantierea incorecta.
