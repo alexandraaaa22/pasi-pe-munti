@@ -1,19 +1,25 @@
-package com.example.pasipemunti.home
+package com.example.pasipemunti.home.viewmodel
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.compose.runtime.State
-import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.viewModelScope
+import com.example.pasipemunti.home.utils.HikingApiService
+import com.example.pasipemunti.home.models.Achievement
+import com.example.pasipemunti.home.models.HikeData
+import com.example.pasipemunti.home.models.TimeRange
+import com.example.pasipemunti.home.models.WeatherStats
 import kotlinx.coroutines.launch
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.util.Calendar
 import java.util.Locale
+import retrofit2.converter.gson.GsonConverterFactory
 
 class HikingStatsViewModel : ViewModel() {
+
     private val _hikingData = mutableStateOf<List<Float>>(emptyList())
     val hikingData: State<List<Float>> = _hikingData
 
@@ -36,6 +42,50 @@ class HikingStatsViewModel : ViewModel() {
     val achievementsError: State<String?> = _achievementsError
 
     private val apiService: HikingApiService = createApiService()
+
+    //stari pt meteo
+    private val _weatherStats = mutableStateOf<List<WeatherStats>>(emptyList())
+    val weatherStats: State<List<WeatherStats>> = _weatherStats
+
+    fun loadWeatherStats(userId: String) {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _error.value = null
+
+                val TAG = "WeatherStatsViewModel"
+
+                val response = apiService.getWeatherStats(userId)
+
+                if (response.isSuccessful) {
+                    val apiResponse = response.body() // Acum apiResponse este de tip WeatherStatsApiResponse
+                    if (apiResponse != null && apiResponse.weather_stats.isNotEmpty()) {
+                        Log.d(TAG, "API Response Successful. Raw data: $apiResponse") // Log pentru succes
+                        _weatherStats.value = apiResponse.weather_stats.map { weatherResponse ->
+                            WeatherStats(
+                                condition = weatherResponse.condition,
+                                totalKm = weatherResponse.totalKm,
+                                hikeCount = weatherResponse.hikeCount
+                            )
+                        }
+                        Log.d(TAG, "Mapped Weather Stats: ${_weatherStats.value}") // Log după mapare
+                    } else {
+                        Log.d(TAG, "API Response Successful, but weather_stats list is null or empty.")
+                        _weatherStats.value = emptyList()
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    Log.e(TAG, "API Response Error: ${response.code()}, Message: ${response.message()}, Body: $errorBody")
+                    _error.value = "Eroare la încărcarea datelor meteo: ${response.code()}"
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Network Error: ${e.message}", e)
+                _error.value = "Eroare de rețea: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
 
     fun loadHikingData(userId: String, timeRange: TimeRange) {
         viewModelScope.launch {
@@ -68,14 +118,15 @@ class HikingStatsViewModel : ViewModel() {
             _isAchievementsLoading.value = true
             _achievementsError.value = null
             try {
-                val response = apiService.getUserAchievements(userId.toInt().toString())
+                val response = apiService.getUserAchievements(userId)
                 if (response.isSuccessful) {
                     _achievements.value = response.body() ?: emptyList()
                 } else {
-                    _achievementsError.value = "Eroare la realizări: ${response.code()}"
+                    _achievementsError.value = "Eroare la realizări: ${response.code()} - ${response.message()}"
                 }
             } catch (e: Exception) {
-                _achievementsError.value = "Eroare: ${e.message}"
+                _achievementsError.value = "Eroare de rețea: ${e.message}"
+                e.printStackTrace()
             } finally {
                 _isAchievementsLoading.value = false
             }
@@ -135,7 +186,7 @@ class HikingStatsViewModel : ViewModel() {
         val client = OkHttpClient.Builder().build()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://5148-109-99-204-12.ngrok-free.app/")
+            .baseUrl("https://740d4a8f71b5.ngrok-free.app/")
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()
