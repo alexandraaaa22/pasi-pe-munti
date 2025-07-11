@@ -1,6 +1,5 @@
 package com.example.pasipemunti.profile
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -24,28 +23,15 @@ class ProfileViewModel(
             val userData = userPreferencesManager.getUserData()
             if (userData != null) {
                 _userInfo.value = UserInfo(
-                    userId = userData.userId,
                     username = userData.username,
                     email = userData.email,
                     firstName = userData.firstName,
-                    lastName = userData.lastName
+                    lastName = userData.lastName,
+                    profilePictureUri = userData.profilePictureUri
                 )
             }
 
             _isLoading.value = false
-        }
-    }
-
-    fun logout() {
-        viewModelScope.launch {
-            // Șterge datele utilizatorului
-            userPreferencesManager.clearUserData()
-
-            // Resetează state-ul
-            _userInfo.value = null
-
-            // Aici poți adăuga logica de navigare către ecranul de login
-            // sau poți emite un event pentru a informa UI-ul
         }
     }
 
@@ -61,7 +47,14 @@ class ProfileViewModel(
             firstName?.let { userPreferencesManager.updateFirstName(it) }
             lastName?.let { userPreferencesManager.updateLastName(it) }
 
-            // Reîncarcă datele pentru a actualiza UI-ul
+            loadUserInfo()
+        }
+    }
+
+    fun updateProfilePicture(uri: String) {
+        viewModelScope.launch {
+            userPreferencesManager.updateProfilePicture(uri)
+
             loadUserInfo()
         }
     }
