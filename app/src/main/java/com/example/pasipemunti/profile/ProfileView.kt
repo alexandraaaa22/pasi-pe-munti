@@ -14,11 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Help
-import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -80,17 +76,7 @@ fun ProfileContent(profileViewModel: ProfileViewModel) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                PersonalInfoSection(
-                    userInfo = userInfo!!,
-                    onEditInfo = { field, value ->
-                        when (field) {
-                            "username" -> profileViewModel.updateUserInfo(username = value)
-                            "email" -> profileViewModel.updateUserInfo(email = value)
-                            "firstName" -> profileViewModel.updateUserInfo(firstName = value)
-                            "lastName" -> profileViewModel.updateUserInfo(lastName = value)
-                        }
-                    }
-                )
+                PersonalInfoSection(userInfo = userInfo!!)
 
                 Spacer(modifier = Modifier.height(24.dp))
             }
@@ -203,14 +189,7 @@ fun ProfileHeader(
 }
 
 @Composable
-fun PersonalInfoSection(
-    userInfo: UserInfo,
-    onEditInfo: (String, String) -> Unit
-) {
-    var showEditDialog by remember { mutableStateOf(false) }
-    var editField by remember { mutableStateOf("") }
-    var editValue by remember { mutableStateOf("") }
-
+fun PersonalInfoSection(userInfo: UserInfo) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -230,85 +209,44 @@ fun PersonalInfoSection(
                 modifier = Modifier.padding(bottom = 16.dp)
             )
 
-            EditableInfoItem(
+            InfoItem(
                 icon = Icons.Default.AccountCircle,
                 label = "Nume utilizator",
-                value = userInfo.username,
-                onEdit = {
-                    editField = "username"
-                    editValue = userInfo.username
-                    showEditDialog = true
-                }
+                value = userInfo.username
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            EditableInfoItem(
+            InfoItem(
                 icon = Icons.Default.Email,
                 label = "Email",
-                value = userInfo.email,
-                onEdit = {
-                    editField = "email"
-                    editValue = userInfo.email
-                    showEditDialog = true
-                }
+                value = userInfo.email
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            EditableInfoItem(
+            InfoItem(
                 icon = Icons.Default.Person,
                 label = "Prenume",
-                value = userInfo.firstName,
-                onEdit = {
-                    editField = "firstName"
-                    editValue = userInfo.firstName
-                    showEditDialog = true
-                }
+                value = userInfo.firstName
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            EditableInfoItem(
+            InfoItem(
                 icon = Icons.Default.Person,
                 label = "Nume de familie",
-                value = userInfo.lastName,
-                onEdit = {
-                    editField = "lastName"
-                    editValue = userInfo.lastName
-                    showEditDialog = true
-                }
+                value = userInfo.lastName
             )
         }
-    }
-
-    // Dialog pentru editare
-    if (showEditDialog) {
-        EditInfoDialog(
-            title = when (editField) {
-                "username" -> "Editează numele de utilizator"
-                "email" -> "Editează email-ul"
-                "firstName" -> "Editează prenumele"
-                "lastName" -> "Editează numele de familie"
-                else -> "Editează"
-            },
-            currentValue = editValue,
-            onValueChange = { editValue = it },
-            onConfirm = {
-                onEditInfo(editField, editValue)
-                showEditDialog = false
-            },
-            onDismiss = { showEditDialog = false }
-        )
     }
 }
 
 @Composable
-fun EditableInfoItem(
+fun InfoItem(
     icon: ImageVector,
     label: String,
-    value: String,
-    onEdit: () -> Unit
+    value: String
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -335,52 +273,7 @@ fun EditableInfoItem(
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
-
-        IconButton(
-            onClick = onEdit,
-            modifier = Modifier.size(32.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Edit,
-                contentDescription = "Editează $label",
-                tint = Color(0xff47B36D),
-                modifier = Modifier.size(20.dp)
-            )
-        }
     }
-}
-
-@Composable
-fun EditInfoDialog(
-    title: String,
-    currentValue: String,
-    onValueChange: (String) -> Unit,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(title) },
-        text = {
-            OutlinedTextField(
-                value = currentValue,
-                onValueChange = onValueChange,
-                label = { Text("Valoare nouă") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
-        },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text("Salvează")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Anulează")
-            }
-        }
-    )
 }
 
 data class UserInfo(

@@ -35,22 +35,6 @@ class ProfileViewModel(
         }
     }
 
-    fun updateUserInfo(
-        username: String? = null,
-        email: String? = null,
-        firstName: String? = null,
-        lastName: String? = null
-    ) {
-        viewModelScope.launch {
-            username?.let { userPreferencesManager.updateUsername(it) }
-            email?.let { userPreferencesManager.updateEmail(it) }
-            firstName?.let { userPreferencesManager.updateFirstName(it) }
-            lastName?.let { userPreferencesManager.updateLastName(it) }
-
-            loadUserInfo()
-        }
-    }
-
     fun updateProfilePicture(uri: String) {
         viewModelScope.launch {
             userPreferencesManager.updateProfilePicture(uri)
