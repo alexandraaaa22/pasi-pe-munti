@@ -6,8 +6,10 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
+// Clasa singleton care creeaza si ofera acces la baza de date Room
+
 @Database(entities = [GPXTrailEntity::class], version = 1, exportSchema = false)
-@TypeConverters(GeoPointListConverter::class, DateConverter::class) // Specifică TypeConverters și aici
+@TypeConverters(GeoPointListConverter::class, DateConverter::class)
 abstract class LocalDatabase : RoomDatabase() {
     abstract fun gpxTrailDao(): GpxTrailDao
 
@@ -20,10 +22,10 @@ abstract class LocalDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     LocalDatabase::class.java,
-                    "app_gpx_database.db" // Numele bazei de date generate de Python
+                    "app_gpx_database.db"
                 )
-                    .createFromAsset("app_gpx_database.db") // AICI SE SPECIFICĂ FIȘIERUL PRE-POPULAT
-                    // .fallbackToDestructiveMigration() // Folosește asta DOAR în faza de dezvoltare, dacă schimbi schema
+                    .createFromAsset("app_gpx_database.db")
+                    .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance
                 instance

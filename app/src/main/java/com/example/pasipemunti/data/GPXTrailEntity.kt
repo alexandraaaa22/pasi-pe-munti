@@ -9,6 +9,43 @@ import com.google.gson.reflect.TypeToken
 import org.osmdroid.util.GeoPoint
 import java.util.Date
 
+// Entitatea care defineste structura tabelului in room
+// Foloseste TypeConverters pentru a salva tipuri complexe precum List<GeoPoint> și Date
+@Entity(tableName = "gpx_trails")
+@TypeConverters(GeoPointListConverter::class, DateConverter::class)
+data class GPXTrailEntity(
+    @PrimaryKey(autoGenerate = true) val id: Int? = null, // Make nullable
+    val name: String,
+    val description: String?,
+    val points: List<GeoPoint>, // Salvat ca JSON prin conversie
+    val distance: Float,
+    val elevation_gain: Float,
+    val max_elevation: Float,
+    val date: Date? = null,
+    val duration: Long,
+    val zone: String?,
+    val resource_id: String?,
+    val image_res_id: String?
+) {
+    // Functie pentru a converti entitatea din baza de date intr-un model de aplicatie
+    fun toGPXTrail(): GPXTrail {
+        return GPXTrail(
+            id = this.id ?: 0, // nandle null case
+            name = this.name,
+            description = this.description,
+            points = this.points,
+            distance = this.distance,
+            elevationGain = this.elevation_gain,
+            maxElevation = this.max_elevation,
+            date = this.date,
+            duration = this.duration,
+            zone = this.zone,
+            resourceId = this.resource_id,
+            imageResId = this.image_res_id
+        )
+    }
+}
+
 // Type converter pentru List<GeoPoint>
 data class GeoPointDTO(val lat: Double, val lon: Double, val ele: Double)
 
@@ -41,37 +78,4 @@ class DateConverter {
     fun dateToTimestamp(date: Date?): Long? {
         return date?.time
     }
-}
-
-@Entity(tableName = "gpx_trails")
-@TypeConverters(GeoPointListConverter::class, DateConverter::class)
-data class GPXTrailEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int? = null, // Make nullable
-    val name: String,
-    val description: String?,
-    val points: List<GeoPoint>,
-    val distance: Float,
-    val elevation_gain: Float,
-    val max_elevation: Float,
-    val date: Date? = null,
-    val duration: Long,
-    val zone: String?,
-    val resource_id: String?,
-    val image_res_id: String?
-) {fun toGPXTrail(): GPXTrail {
-    return GPXTrail(
-        id = this.id ?: 0, // Handle null case
-        name = this.name,
-        description = this.description,
-        points = this.points,
-        distance = this.distance,
-        elevationGain = this.elevation_gain,
-        maxElevation = this.max_elevation,
-        date = this.date,
-        duration = this.duration,
-        zone = this.zone,
-        resourceId = this.resource_id,
-        imageResId = this.image_res_id
-    )
-}
 }

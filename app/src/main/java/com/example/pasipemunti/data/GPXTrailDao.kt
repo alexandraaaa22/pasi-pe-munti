@@ -4,6 +4,8 @@ import androidx.room.Dao
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 
+// definim metodele de acces la baza de date
+
 @Dao
 interface GpxTrailDao {
     @Query("SELECT * FROM gpx_trails")
@@ -17,8 +19,4 @@ interface GpxTrailDao {
 
     @Query("SELECT * FROM gpx_trails WHERE zone = :zoneName")
     fun getTrailsByZone(zoneName: String): Flow<List<GPXTrailEntity>>
-
-    // Poți adăuga insert, update, delete dacă vei modifica datele din aplicație
-    // @Insert
-    // suspend fun insertTrail(trail: GPXTrailEntity)
 }
