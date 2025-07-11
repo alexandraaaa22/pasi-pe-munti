@@ -1,14 +1,10 @@
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.navigation.NavController
 import androidx.navigation.compose.*
 import com.example.pasipemunti.auth.UserPreferencesManager
 import com.example.pasipemunti.data.LocalDatabase
@@ -18,7 +14,6 @@ import com.example.pasipemunti.profile.ProfileScreen
 import com.example.pasipemunti.profile.ProfileViewModel
 import com.example.pasipemunti.profile.ProfileViewModelFactory
 import com.example.pasipemunti.searchhike.SearchHikeScreen
-import com.example.pasipemunti.searchhike.SearchHikeViewModel
 import com.example.pasipemunti.traillist.TrailListScreen
 import com.example.pasipemunti.traillist.TrailMapScreen
 import com.example.pasipemunti.ui.BottomMenuItem
@@ -96,13 +91,12 @@ fun BottomMenu() {
             modifier = Modifier.padding(paddingValues)
         ) {
             composable("home") {
-                // Pass userId to HomeScreen
+                // Passing userId to HomeScreen
                 HomeScreen(userId = userId.toString())
             }
             composable("searchHike") { SearchHikeScreen() }
             composable("trailList") {
-                // Pasăm ViewModel-ul deja instanțiat
-                com.example.pasipemunti.traillist.TrailListScreen(navController, trailListViewModel)
+                TrailListScreen(navController, trailListViewModel)
             }
             composable("trailList") {
                 val context = LocalContext.current
@@ -120,26 +114,12 @@ fun BottomMenu() {
     }
 }
 
-// Această funcție TrailListScreen de aici nu mai este necesară,
-// deoarece o apelezi direct pe cea din pachetul `traillist`.
-// Poți să o ștergi.
-
-/* @Composable
-fun TrailListScreen(
-    navController: androidx.navigation.NavController,
-    viewModel: TrailListViewModel = viewModel() // Aceasta va crea o nouă instanță dacă nu se specifică factory
-) {
-    com.example.pasipemunti.traillist.TrailListScreen(navController, viewModel)
-} */
-
-
 @Composable
 fun HomeScreen(userId: String?) {
     // Handle the case where userId might be null
     userId?.let { id ->
         HikingStatsScreen(userId = id)
     } ?: run {
-        // Show a loading or error state when userId is null
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = androidx.compose.ui.Alignment.Center
@@ -153,14 +133,3 @@ fun HomeScreen(userId: String?) {
 fun MapScreen() {
     MapTrailsScreen()
 }
-
-//@Composable
-//fun ProfileScreen() {
-//    ProfileScreen()
-//}
-
-// @Preview
-// @Composable
-// fun BottomMenuPreview() {
-//     BottomMenu()
-// }
