@@ -1,4 +1,4 @@
-package com.example.pasipemunti.home
+package com.example.pasipemunti.home.models
 
 data class HikeData(
     val month: String,
@@ -12,7 +12,6 @@ data class HikingStatsResponse(
     val averageDistance: Float
 )
 
-// HikeData.kt
 data class HikeRequest(
     val user_id: Int,
     val date: String,
