@@ -15,6 +15,7 @@ class UserPreferencesManager(context: Context) {
         private const val KEY_FIRST_NAME = "first_name"
         private const val KEY_LAST_NAME = "last_name"
         private const val KEY_IS_LOGGED_IN = "is_logged_in"
+        private const val KEY_PROFILE_PICTURE = "profile_picture"
 
         // Singleton pt o singura instanta
         @Volatile
@@ -57,6 +58,7 @@ class UserPreferencesManager(context: Context) {
         val email = sharedPreferences.getString(KEY_EMAIL, "") ?: ""
         val firstName = sharedPreferences.getString(KEY_FIRST_NAME, "") ?: ""
         val lastName = sharedPreferences.getString(KEY_LAST_NAME, "") ?: ""
+        val profilePictureUri = sharedPreferences.getString(KEY_PROFILE_PICTURE, null)
 
         if (username.isEmpty()) return null
 
@@ -65,7 +67,8 @@ class UserPreferencesManager(context: Context) {
             username = username,
             email = email,
             firstName = firstName,
-            lastName = lastName
+            lastName = lastName,
+            profilePictureUri = profilePictureUri
         )
     }
 
@@ -99,14 +102,18 @@ class UserPreferencesManager(context: Context) {
     fun updateLastName(lastName: String) {
         updateUserField(KEY_LAST_NAME, lastName)
     }
+
+    fun updateProfilePicture(uri: String) {
+        updateUserField(KEY_PROFILE_PICTURE, uri)
+    }
 }
 
-// Data class pentru datele utilizatorului
+// Data class pentru datele utilizatorului - actualizată
 data class UserData(
     val userId: Int?,
     val username: String,
     val email: String,
     val firstName: String,
-    val lastName: String
+    val lastName: String,
+    val profilePictureUri: String? = null
 )
-

@@ -214,9 +214,9 @@ fun AuthChoiceScreen(navController: NavController) {
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun AuthChoiceScreenPreview() {
-    val navController = rememberNavController()
-    AuthChoiceScreen(navController = navController)
-}
+//@Preview(showBackground = true, showSystemUi = true)
+//@Composable
+//fun AuthChoiceScreenPreview() {
+//    val navController = rememberNavController()
+//    AuthChoiceScreen(navController = navController)
+//}
